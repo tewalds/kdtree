@@ -138,8 +138,12 @@ class KDTree {
 
   KDTree() : root(nullptr), count(0), sum_depth(0) {}
   KDTree(const std::vector<Entry>& entries) : KDTree() {
-    std::vector<Entry> mut_entries = entries;  // Copy
-    root = build_balanced_tree(mut_entries.begin(), mut_entries.end(), 0);
+    std::vector<std::unique_ptr<Node>> nodes;
+    nodes.reserve(entries.size());
+    for (const auto& e : entries) {
+      nodes.push_back(std::make_unique<Node>(e, 0));
+    }
+    root = build_balanced_tree(nodes.begin(), nodes.end(), 0);
     assert(entries.size() == size());
   }
 
@@ -243,16 +247,16 @@ class KDTree {
       return;
     }
 
-    std::vector<Entry> entries;
-    entries.reserve(count);
-    collect_entries(root, entries);
+    std::vector<std::unique_ptr<Node>> nodes;
+    nodes.reserve(count);
+    collect_nodes(std::move(root), nodes);
 
     assert(!root);
     assert(sum_depth == 0);
     assert(count == 0);
 
-    root = build_balanced_tree(entries.begin(), entries.end(), 0);
-    assert(entries.size() == size());
+    root = build_balanced_tree(nodes.begin(), nodes.end(), 0);
+    assert(nodes.size() == size());
   }
 
   std::string balance_str() const {
@@ -446,11 +450,11 @@ class KDTree {
       int depth = node->depth;
       sum_depth -= depth;
       count -= 1;
-      std::vector<Entry> entries;
+      std::vector<std::unique_ptr<Node>> nodes;
       // Skip collecting this node as it's being removed.
-      collect_entries(node->children[0], entries);
+      collect_nodes(std::move(node->children[0]), nodes);
       assert(!node->children[1]);  // Otherwise we'd have replaced this node above.
-      node = build_balanced_tree(entries.begin(), entries.end(), depth);
+      node = build_balanced_tree(nodes.begin(), nodes.end(), depth);
       return;
     } else {
       // A leaf node can just be removed.
@@ -507,21 +511,20 @@ class KDTree {
     return {height, variance};
   }
 
-  void collect_entries(std::unique_ptr<Node>& node, std::vector<Entry>& entries) {
+  void collect_nodes(std::unique_ptr<Node> node, std::vector<std::unique_ptr<Node>>& nodes) {
     if (!node) {
       return;
     }
-    entries.push_back(node->entry);
-    collect_entries(node->children[0], entries);
-    collect_entries(node->children[1], entries);
+    collect_nodes(std::move(node->children[0]), nodes);
+    collect_nodes(std::move(node->children[1]), nodes);
     sum_depth -= node->depth;
     count -= 1;
-    node.reset();
+    nodes.push_back(std::move(node));
   }
 
   std::unique_ptr<Node> build_balanced_tree(
-      typename std::vector<Entry>::iterator start,
-      typename std::vector<Entry>::iterator end,
+      typename std::vector<std::unique_ptr<Node>>::iterator start,
+      typename std::vector<std::unique_ptr<Node>>::iterator end,
       int depth) {
     if (start == end) {
       return nullptr;
@@ -532,16 +535,18 @@ class KDTree {
     // Choose the pivot.
     auto mid = std::next(start, std::distance(start, end) / 2);
     // Find the pivot value
-    std::nth_element(start, mid, end, [axis](const Entry& a, const Entry& b) {
-      return a.p.coords[axis] < b.p.coords[axis];
-    });
-    Entry pivot = *mid;
-    // Find the pivot's true location, as it has to be the first of that value.
-    mid = std::partition(start, mid, [axis, &pivot](const Entry& a) {
-      return a.p.coords[axis] < pivot.p.coords[axis];
+    std::nth_element(start, mid, end, [axis](const std::unique_ptr<Node>& a, const std::unique_ptr<Node>& b) {
+      return a->entry.p.coords[axis] < b->entry.p.coords[axis];
     });
 
-    auto node = std::make_unique<Node>(*mid, depth);
+    typename PointType::value_type pivot_coord = (*mid)->entry.p.coords[axis];
+    // Find the pivot's true location, as it has to be the first of that value.
+    mid = std::partition(start, mid, [axis, pivot_coord](const std::unique_ptr<Node>& a) {
+      return a->entry.p.coords[axis] < pivot_coord;
+    });
+
+    std::unique_ptr<Node> node = std::move(*mid);
+    node->depth = depth;
     sum_depth += depth;
     count += 1;
     node->children[0] = build_balanced_tree(start, mid, depth + 1);
