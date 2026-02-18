@@ -58,59 +58,59 @@ using Pointi = Point<int>;
 using Pointf = Point<float>;
 using Pointd = Point<double>;
 
-template <typename ValueType, typename PointType>
-struct Value {
-  ValueType value;
+template <typename PointType, typename ValueType>
+struct Entry {
   PointType p;
+  ValueType value;
 
-  Value() = default;
-  Value(ValueType v, PointType pt) : value(v), p(pt) {}
+  Entry() = default;
+  Entry(PointType pt, ValueType v) : p(pt), value(v) {}
 
-  bool operator==(const Value& o) const = default;
-  bool operator!=(const Value& o) const = default;
+  bool operator==(const Entry& o) const = default;
+  bool operator!=(const Entry& o) const = default;
 
-  friend std::ostream& operator<<(std::ostream& stream, const Value& v) {
-    return stream << "Value(" << v.value << ", " << v.p << ")";
+  friend std::ostream& operator<<(std::ostream& stream, const Entry& e) {
+    return stream << "Entry(" << e.p << ", " << e.value << ")";
   }
 };
 
 enum class Norm { L1, L2, Linf };
 
-template<class ValueType = int64_t, class PointType = Pointd>
+template<class PointType = Pointd, class ValueType = int64_t>
 class KDTree {
  public:
-  using value_type = ValueType;
   using point_type = PointType;
-  using Value = kdtree::Value<ValueType, PointType>;
+  using value_type = ValueType;
+  using Entry = kdtree::Entry<PointType, ValueType>;
 
  private:
   struct Node {
-    Value value;
+    Entry entry;
     int depth;
     std::unique_ptr<Node> children[2];
 
-    Node(Value v, int d) : value(v), depth(d) {}
+    Node(Entry e, int d) : entry(e), depth(d) {}
   };
 
  public:
   class Iterator {
    public:
     using iterator_category = std::input_iterator_tag;
-    using value_type = Value;
-    using pointer = Value*;
-    using reference = Value&;
+    using value_type = Entry;
+    using pointer = Entry*;
+    using reference = Entry&;
     using difference_type = std::ptrdiff_t;
 
     Iterator() {}
     Iterator(const Node* n) { if (n) stack.push_back(n); }
 
-    const Value& operator*() const {
+    const Entry& operator*() const {
       assert(!stack.empty());
-      return stack.back()->value;
+      return stack.back()->entry;
     }
-    const Value* operator->() const {
+    const Entry* operator->() const {
       assert(!stack.empty());
-      return &stack.back()->value;
+      return &stack.back()->entry;
     }
     Iterator& operator++() {
       assert(!stack.empty());
@@ -137,10 +137,10 @@ class KDTree {
   using const_iterator = Iterator;
 
   KDTree() : root(nullptr), count(0), sum_depth(0) {}
-  KDTree(const std::vector<Value>& values) : KDTree() {
-    std::vector<Value> mut_values = values;  // Copy
-    root = build_balanced_tree(mut_values.begin(), mut_values.end(), 0);
-    assert(values.size() == size());
+  KDTree(const std::vector<Entry>& entries) : KDTree() {
+    std::vector<Entry> mut_entries = entries;  // Copy
+    root = build_balanced_tree(mut_entries.begin(), mut_entries.end(), 0);
+    assert(entries.size() == size());
   }
 
   bool empty() const { return root == nullptr; }
@@ -154,20 +154,20 @@ class KDTree {
   Iterator begin() const { return Iterator(root.get()); }
   Iterator end() const { return Iterator(); }
 
-  bool insert(ValueType v, PointType p) { return insert({v, p}); }
-  bool insert(Value v) { return insert_or_set(v, false); }
-  bool set(ValueType v, PointType p) { return set({v, p}); }
-  bool set(Value v) { return insert_or_set(v, true); }
+  bool insert(PointType p, ValueType v) { return insert({p, v}); }
+  bool insert(Entry e) { return insert_or_set(e, false); }
+  bool set(PointType p, ValueType v) { return set({p, v}); }
+  bool set(Entry e) { return insert_or_set(e, true); }
 
   bool remove(PointType p) {
     std::unique_ptr<Node>* node = &root;
     while (*node) {
-      if ((*node)->value.p == p) {
+      if ((*node)->entry.p == p) {
         remove_node(*node);
         return true;
       }
       int axis = (*node)->depth % 2;
-      int child = (p.coords[axis] < (*node)->value.p.coords[axis] ? 0 : 1);
+      int child = (p.coords[axis] < (*node)->entry.p.coords[axis] ? 0 : 1);
       node = &(*node)->children[child];
     }
     return false;
@@ -177,20 +177,20 @@ class KDTree {
     return bool(find(p));
   }
 
-  std::optional<Value> find(PointType p) const {
+  std::optional<Entry> find(PointType p) const {
     Node* node = root.get();
     while (node) {
-      if (node->value.p == p) {
-        return node->value;
+      if (node->entry.p == p) {
+        return node->entry;
       }
       int axis = node->depth % 2;
-      int child = (p.coords[axis] < node->value.p.coords[axis] ? 0 : 1);
+      int child = (p.coords[axis] < node->entry.p.coords[axis] ? 0 : 1);
       node = node->children[child].get();
     }
     return {};
   }
 
-  Value find_closest(PointType p, Norm norm = Norm::L2) const {
+  Entry find_closest(PointType p, Norm norm = Norm::L2) const {
     assert(root != nullptr);
     const std::unique_ptr<Node>* best_node = nullptr;
     typename PointType::value_type best_dist = std::numeric_limits<typename PointType::value_type>::max();
@@ -203,10 +203,10 @@ class KDTree {
     }
 
     assert(best_node);
-    return (*best_node)->value;
+    return (*best_node)->entry;
   }
 
-  Value pop_closest(PointType p, Norm norm = Norm::L2) {
+  Entry pop_closest(PointType p, Norm norm = Norm::L2) {
     assert(root != nullptr);
     std::unique_ptr<Node>* best_node = nullptr;
     typename PointType::value_type best_dist = std::numeric_limits<typename PointType::value_type>::max();
@@ -218,14 +218,14 @@ class KDTree {
     }
 
     assert(best_node);
-    Value out = (*best_node)->value;
+    Entry out = (*best_node)->entry;
     remove_node(*best_node);
     return out;
   }
 
   void print_tree(std::ostream& stream = std::cout) const {
     if (root) {
-      stream << root->value << std::endl;
+      stream << root->entry << std::endl;
       print_tree(stream, root->children[0].get(), "", true);
       print_tree(stream, root->children[1].get(), "", false);
     }
@@ -243,16 +243,16 @@ class KDTree {
       return;
     }
 
-    std::vector<Value> values;
-    values.reserve(count);
-    collect_values(root, values);
+    std::vector<Entry> entries;
+    entries.reserve(count);
+    collect_entries(root, entries);
 
     assert(!root);
     assert(sum_depth == 0);
     assert(count == 0);
 
-    root = build_balanced_tree(values.begin(), values.end(), 0);
-    assert(values.size() == size());
+    root = build_balanced_tree(entries.begin(), entries.end(), 0);
+    assert(entries.size() == size());
   }
 
   std::string balance_str() const {
@@ -295,22 +295,22 @@ class KDTree {
   int count;
   int64_t sum_depth;
 
-  bool insert_or_set(Value v, bool replace) {
+  bool insert_or_set(Entry e, bool replace) {
     std::unique_ptr<Node>* node = &root;
     int depth = 0;
     while (*node) {
-      if ((*node)->value.p == v.p) {
+      if ((*node)->entry.p == e.p) {
         if (replace) {
-          (*node)->value.value = v.value;
+          (*node)->entry.value = e.value;
         }
-        return false; // Value already exists
+        return false; // Point already exists
       }
       int axis = depth % 2;
-      int child = (v.p.coords[axis] < (*node)->value.p.coords[axis] ? 0 : 1);
+      int child = (e.p.coords[axis] < (*node)->entry.p.coords[axis] ? 0 : 1);
       node = &(*node)->children[child];
       depth += 1;
     }
-    *node = std::make_unique<Node>(v, depth);
+    *node = std::make_unique<Node>(e, depth);
     count += 1;
     sum_depth += depth;
 
@@ -349,17 +349,17 @@ class KDTree {
       return;
     }
 
-    typename PointType::value_type dist = DistFn((*node)->value.p, p);
+    typename PointType::value_type dist = DistFn((*node)->entry.p, p);
     if (dist < best_dist) {
       best_dist = dist;
       best_node = node;
     }
 
     int axis = (*node)->depth % 2;
-    int search_first = (p.coords[axis] < (*node)->value.p.coords[axis]) ? 0 : 1;
+    int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
     find_closest_impl<DistFn>(&(*node)->children[search_first], p, best_dist, best_node);
 
-    typename PointType::value_type axis_dist = std::abs(p.coords[axis] - (*node)->value.p.coords[axis]);
+    typename PointType::value_type axis_dist = std::abs(p.coords[axis] - (*node)->entry.p.coords[axis]);
     if (axis_dist < best_dist) {
       find_closest_impl<DistFn>(&(*node)->children[!search_first], p, best_dist, best_node);
     }
@@ -375,17 +375,17 @@ class KDTree {
       return;
     }
 
-    typename PointType::value_type dist = DistFn((*node)->value.p, p);
+    typename PointType::value_type dist = DistFn((*node)->entry.p, p);
     if (dist < best_dist) {
       best_dist = dist;
       best_node = node;
     }
 
     int axis = (*node)->depth % 2;
-    int search_first = (p.coords[axis] < (*node)->value.p.coords[axis]) ? 0 : 1;
+    int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
     find_closest_impl_mutable<DistFn>(&(*node)->children[search_first], p, best_dist, best_node);
 
-    typename PointType::value_type axis_dist = std::abs(p.coords[axis] - (*node)->value.p.coords[axis]);
+    typename PointType::value_type axis_dist = std::abs(p.coords[axis] - (*node)->entry.p.coords[axis]);
     if (axis_dist < best_dist) {
       find_closest_impl_mutable<DistFn>(&(*node)->children[!search_first], p, best_dist, best_node);
     }
@@ -399,7 +399,7 @@ class KDTree {
       return;
     }
 
-    typename PointType::value_type dist = (*node)->value.p.coords[axis] - coord;
+    typename PointType::value_type dist = (*node)->entry.p.coords[axis] - coord;
     if (dist < best_dist ||
         (dist == best_dist && (!best_node || (*node)->depth > (*best_node)->depth))) {
       // Prioritizing the deepest means less cascading of intermediate nodes being replaced
@@ -428,14 +428,14 @@ class KDTree {
       std::unique_ptr<Node>* best_node = nullptr;
       typename PointType::value_type best_dist = std::numeric_limits<typename PointType::value_type>::max();
       int axis = node->depth % 2;
-      typename PointType::value_type coord = node->value.p.coords[axis];
+      typename PointType::value_type coord = node->entry.p.coords[axis];
       find_leftmost_along_axis(&node->children[1], coord, axis, best_dist, best_node);
 
       // If there is a right subtree, there will be a left-most node with value >= this one.
       assert(best_dist >= 0);
       assert(best_node);
 
-      node->value = (*best_node)->value;
+      node->entry = (*best_node)->entry;
       remove_node(*best_node);
       return;
     } else if (node->children[0]) {
@@ -446,11 +446,11 @@ class KDTree {
       int depth = node->depth;
       sum_depth -= depth;
       count -= 1;
-      std::vector<Value> values;
+      std::vector<Entry> entries;
       // Skip collecting this node as it's being removed.
-      collect_values(node->children[0], values);
+      collect_entries(node->children[0], entries);
       assert(!node->children[1]);  // Otherwise we'd have replaced this node above.
-      node = build_balanced_tree(values.begin(), values.end(), depth);
+      node = build_balanced_tree(entries.begin(), entries.end(), depth);
       return;
     } else {
       // A leaf node can just be removed.
@@ -465,7 +465,7 @@ class KDTree {
     if (!node) {
       return;
     }
-    stream << prefix << (first ? "├─" : "└─") << node->value << std::endl;
+    stream << prefix << (first ? "├─" : "└─") << node->entry << std::endl;
     prefix += (first ? "│ " : "  ");
     print_tree(stream, node->children[0].get(), prefix, true);
     print_tree(stream, node->children[1].get(), prefix, false);
@@ -507,21 +507,21 @@ class KDTree {
     return {height, variance};
   }
 
-  void collect_values(std::unique_ptr<Node>& node, std::vector<Value>& values) {
+  void collect_entries(std::unique_ptr<Node>& node, std::vector<Entry>& entries) {
     if (!node) {
       return;
     }
-    values.push_back(node->value);
-    collect_values(node->children[0], values);
-    collect_values(node->children[1], values);
+    entries.push_back(node->entry);
+    collect_entries(node->children[0], entries);
+    collect_entries(node->children[1], entries);
     sum_depth -= node->depth;
     count -= 1;
     node.reset();
   }
 
   std::unique_ptr<Node> build_balanced_tree(
-      typename std::vector<Value>::iterator start,
-      typename std::vector<Value>::iterator end,
+      typename std::vector<Entry>::iterator start,
+      typename std::vector<Entry>::iterator end,
       int depth) {
     if (start == end) {
       return nullptr;
@@ -532,12 +532,12 @@ class KDTree {
     // Choose the pivot.
     auto mid = std::next(start, std::distance(start, end) / 2);
     // Find the pivot value
-    std::nth_element(start, mid, end, [axis](const Value& a, const Value& b) {
+    std::nth_element(start, mid, end, [axis](const Entry& a, const Entry& b) {
       return a.p.coords[axis] < b.p.coords[axis];
     });
-    Value pivot = *mid;
+    Entry pivot = *mid;
     // Find the pivot's true location, as it has to be the first of that value.
-    mid = std::partition(start, mid, [axis, &pivot](const Value& a) {
+    mid = std::partition(start, mid, [axis, &pivot](const Entry& a) {
       return a.p.coords[axis] < pivot.p.coords[axis];
     });
 
@@ -552,8 +552,8 @@ class KDTree {
 };
 
 // Common type aliases
-using KDTreei = KDTree<int64_t, Pointi>;
-using KDTreef = KDTree<int64_t, Pointf>;
-using KDTreed = KDTree<int64_t, Pointd>;
+using KDTreei = KDTree<Pointi, int64_t>;
+using KDTreef = KDTree<Pointf, int64_t>;
+using KDTreed = KDTree<Pointd, int64_t>;
 
 }  // namespace kdtree

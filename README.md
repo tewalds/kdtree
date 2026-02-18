@@ -10,7 +10,7 @@ A high-performance, header-only C++ KD-tree implementation with Python bindings.
 | Remove points | ✅ O(log n) | ❌ Requires full rebuild |
 | Nearest neighbor | ✅ O(log n) | ✅ O(log n) |
 | Auto-rebalancing | ✅ Automatic | ❌ Manual rebuild |
-| Distance metrics | L1, L2 (runtime) | L1, L2, Lp, custom |
+| Distance metrics | L1, L2, Linf (runtime) | L1, L2, Lp, custom |
 | Language | C++20 / Python | Python |
 | K dimensions | 2D only | Any K |
 
@@ -26,12 +26,12 @@ A high-performance, header-only C++ KD-tree implementation with Python bindings.
 #include "kdtree.h"
 using namespace kdtree;
 
-KDTreed tree;  // double coords, int64_t values
-tree.insert({42, Pointd(1.5, 2.3)});
-tree.insert({7, Pointd(4.1, 3.7)});
+KDTreed tree;  // Pointd coords, int64_t values
+tree.insert(Pointd(1.5, 2.3), 42);
+tree.insert(Pointd(4.1, 3.7), 7);
 
 auto result = tree.find_closest(Pointd(2.0, 3.0));
-std::cout << "Closest: " << result << std::endl;
+std::cout << "Closest: " << result << std::endl; // Entry({1.5, 2.3}, 42)
 
 // Manhattan distance
 auto manhattan = tree.find_closest(Pointd(2.0, 3.0), Norm::L1);
@@ -42,7 +42,7 @@ auto manhattan = tree.find_closest(Pointd(2.0, 3.0), Norm::L1);
 mkdir build && cd build
 cmake ..
 make
-ctest  # Run tests
+./kdtree_test  # Run tests
 ```
 
 ### Python
@@ -55,11 +55,11 @@ pip install .
 import kdtree
 
 tree = kdtree.KDTreed()
-tree.insert(42, (1.5, 2.3))  # No Value type needed!
-tree.insert(7, (4.1, 3.7))
+tree.insert((1.5, 2.3), 42)
+tree.insert(4.1, 3.7, 7)
 
 result = tree.find_closest((2.0, 3.0))
-print(f"Closest: {result}")
+print(f"Closest: {result}") # Entry({1.5, 2.3}, 42)
 
 # Manhattan distance
 result_l1 = tree.find_closest((2.0, 3.0), kdtree.Norm.L1)
@@ -77,13 +77,13 @@ if entities_moved:
 
 # Good: This KDTree - incremental updates
 for entity in moved_entities:
-    tree.remove(entity.old_pos)      # O(log n)
-    tree.insert(entity.id, entity.new_pos)  # O(log n)
+    tree.remove(entity.old_pos)         # O(log n)
+    tree.insert(entity.new_pos, entity.id) # O(log n)
 ```
 
 ### Distance Metrics
 
-Both L1 (Manhattan) and L2 (Euclidean squared) are supported via runtime parameter:
+L1 (Manhattan), L2 (Euclidean squared), and Linf (Chebyshev) are supported via runtime parameter:
 
 ```python
 tree = kdtree.KDTreed()
@@ -91,12 +91,16 @@ tree = kdtree.KDTreed()
 
 # Euclidean (default)
 closest = tree.find_closest((1.0, 2.0))
+closest = tree.find_closest((1.0, 2.0), kdtree.Norm.L2)
 
 # Manhattan - same tree, different query
 closest = tree.find_closest((1.0, 2.0), kdtree.Norm.L1)
+
+# Chebyshev
+closest = tree.find_closest((1.0, 2.0), kdtree.Norm.Linf)
 ```
 
-**Note:** The tree structure is independent of the distance metric, so you can use both L1 and L2 queries on the same tree!
+**Note:** The tree structure is independent of the distance metric, so you can use different queries on the same tree!
 
 ### Python Object Storage
 
@@ -104,8 +108,8 @@ Store arbitrary Python objects directly (no index indirection needed):
 
 ```python
 tree = kdtree.KDTreePyd()  # "Py" = Python object storage
-tree.insert({"name": "Alice", "data": [1,2,3]}, (1.0, 2.0))
-tree.insert(MyCustomClass(), (3.0, 4.0))
+tree.insert((1.0, 2.0), {"name": "Alice", "data": [1,2,3]})
+tree.insert((3.0, 4.0), MyCustomClass())
 
 result = tree.find_closest((2.0, 3.0))
 obj = result.value  # Original Python object
@@ -118,7 +122,7 @@ The tree automatically rebalances when it detects imbalance:
 ```python
 tree = kdtree.KDTreed()
 for i in range(10000):
-    tree.insert(i, (random(), random()))
+    tree.insert((random(), random()), i)
 # Automatically rebalances as needed - no manual intervention
 
 # Or force rebalance:
@@ -138,27 +142,30 @@ namespace kdtree {
   using Pointf = Point<float>;
   using Pointd = Point<double>;
 
-  // Value container (lives outside KDTree class)
-  template<typename ValueType, typename PointType>
-  struct Value { ValueType value; PointType p; };
+  // Entry container (lives outside KDTree class)
+  template<typename PointType, typename ValueType>
+  struct Entry { PointType p; ValueType value; };
 
   // Tree types (all use int64_t values by default)
-  using KDTreei = KDTree<int64_t, Pointi>;
-  using KDTreef = KDTree<int64_t, Pointf>;
-  using KDTreed = KDTree<int64_t, Pointd>;  // Recommended
+  using KDTreei = KDTree<Pointi, int64_t>;
+  using KDTreef = KDTree<Pointf, int64_t>;
+  using KDTreed = KDTree<Pointd, int64_t>;  // Recommended
 
   // Or use custom types:
-  KDTree<MyStruct, Pointd> tree;  // Any copyable type works
+  KDTree<Pointd, MyStruct> tree;  // Any copyable type works
 }
 ```
 
 **Methods:**
-- `bool insert(Value v)` - Insert value, returns false if point exists
+- `bool insert(PointType p, ValueType v)` - Insert key/value, returns false if point exists
+- `bool insert(Entry e)` - Insert entry
+- `bool set(PointType p, ValueType v)` - Set key/value, returns false if point exists
+- `bool set(Entry e)` - Set entry
 - `bool remove(PointType p)` - Remove by point
 - `bool exists(PointType p)` - Check existence
-- `optional<Value> find(PointType p)` - Exact lookup
-- `Value find_closest(PointType p, Norm norm=L2)` - Nearest neighbor
-- `Value pop_closest(PointType p, Norm norm=L2)` - Remove & return nearest
+- `optional<Entry> find(PointType p)` - Exact lookup
+- `Entry find_closest(PointType p, Norm norm=L2)` - Nearest neighbor
+- `Entry pop_closest(PointType p, Norm norm=L2)` - Remove & return nearest
 - `void rebalance()` - Force rebalance
 - `size_t size()`, `bool empty()`, `void clear()`
 - `Iterator begin/end()` - Range-based for loop support
@@ -176,28 +183,20 @@ kdtree.KDTreePyi  # int coords
 kdtree.KDTreePyd  # double coords
 ```
 
-**Note:** No `KDTreef` / `KDTreePyf` in Python. Python `float` is 64-bit (C++ `double`), so using C++ `float` (32-bit) would silently truncate precision and break `exists()` / `remove()`.
-
-**Insert Convenience - Never spell Value type:**
+**Insert Convenience:**
 ```python
-tree.insert(value, point)          # Value type, Point
-tree.insert(42, (1.0, 2.0))        # value, tuple
-tree.insert(42, [1.0, 2.0])        # value, list
-tree.insert(42, 1.0, 2.0)          # value, x, y
+tree.insert(point, value)          # Point, Value type
+tree.insert((1.0, 2.0), 42)        # tuple, value
+tree.insert([1.0, 2.0], 42)        # list, value
+tree.insert(1.0, 2.0, 42)          # x, y, value
 ```
 
-**Query Convenience - All methods accept multiple forms:**
+**Query Convenience:**
 ```python
 tree.find_closest((1.0, 2.0))           # tuple
 tree.find_closest(1.0, 2.0)             # x, y
 tree.find_closest(point, kdtree.Norm.L1)  # with norm parameter
 ```
-
-All methods (`exists`, `find`, `remove`, `find_closest`, `pop_closest`) accept:
-- Explicit `Point` object
-- Tuple: `(x, y)`
-- List: `[x, y]`
-- Separate coords: `x, y`
 
 ## Performance
 
@@ -206,10 +205,6 @@ All methods (`exists`, `find`, `remove`, `find_closest`, `pop_closest`) accept:
 - **Nearest neighbor:** O(log n) average, O(n) worst case
 - **Rebalance:** O(n log n)
 - **Memory:** ~40-48 bytes per node depending on coordinate type
-
-Memory breakdown:
-- `KDTreei`: ~40 bytes/node (int coords: 8, int64 value: 8, depth: 4, pointers: 16, padding: 4)
-- `KDTreed`: ~48 bytes/node (double coords: 16, int64 value: 8, depth: 4, pointers: 16, padding: 4)
 
 ## Requirements
 
@@ -221,10 +216,7 @@ Memory breakdown:
 ### C++ (header-only)
 
 ```bash
-# Copy kdtree.h to your include path, or:
-cmake -B build
-cmake --build build
-cmake --install build
+# Copy kdtree.h to your include path
 ```
 
 ### Python
@@ -239,7 +231,6 @@ pip install -e .
 
 - **2D only** - Not suitable for 3D+ data
 - **Not thread-safe** - Use external synchronization
-- **No persistence** - No serialization (yet)
 - **No k-nearest** - Only single nearest neighbor (for now)
 
 For k-dimensional trees or k-nearest neighbors, see scipy, Annoy, or nanoflann.
@@ -253,7 +244,6 @@ Apache License 2.0 - See LICENSE file
 Contributions welcome! Areas of interest:
 - [ ] k-nearest neighbors (not just nearest)
 - [ ] Range queries (all points within radius)
-- [ ] Serialization support
 - [ ] Benchmarks vs scipy
 - [ ] 3D support (relatively straightforward)
 

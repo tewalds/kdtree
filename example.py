@@ -11,10 +11,10 @@ def basic():
     tree = kdtree.KDTreed()
 
     # Insert using different convenience methods
-    tree.insert(1, (1.5, 2.3))           # tuple
-    tree.insert(2, [4.1, 3.7])           # list
-    tree.insert(3, kdtree.Pointd(0.8, 5.2))  # explicit Point
-    tree.insert(4, 3.0, 4.0)             # separate coords
+    tree.insert((1.5, 2.3), 1)           # tuple, value
+    tree.insert([4.1, 3.7], 2)           # list, value
+    tree.insert(kdtree.Pointd(0.8, 5.2), 3)  # explicit Point, value
+    tree.insert(3.0, 4.0, 4)             # separate coords, value
 
     print(f"Tree size: {len(tree)}")
     print(f"Stats: {tree.balance_str()}\n")
@@ -42,18 +42,18 @@ def basic():
     print(f"  Linf (King):    {closest_linf}\n")
 
     # Iterate
-    print("All values:")
-    for value in tree:
-        print(f"  {value}")
+    print("All entries:")
+    for entry in tree:
+        print(f"  {entry}")
 
     print("\n=== Python Object Storage ===\n")
 
     # Store arbitrary Python objects
     pytree = kdtree.KDTreePyd()
 
-    pytree.insert({"name": "Alice", "score": 100}, (1.0, 2.0))
-    pytree.insert({"name": "Bob", "score": 85}, (3.0, 4.0))
-    pytree.insert(["some", "list"], (5.0, 1.0))
+    pytree.insert((1.0, 2.0), {"name": "Alice", "score": 100})
+    pytree.insert((3.0, 4.0), {"name": "Bob", "score": 85})
+    pytree.insert((5.0, 1.0), ["some", "list"])
 
     # Find closest
     result = pytree.find_closest((2.0, 3.0))
@@ -63,8 +63,8 @@ def basic():
     # Remove and iterate
     pytree.remove(3.0, 4.0)
     print(f"After removing (3.0, 4.0), remaining objects:")
-    for val in pytree:
-        print(f"  {val.value} at {val.p}")
+    for entry in pytree:
+        print(f"  {entry.value} at {entry.p}")
 
     print("\n=== Manhattan Distance Example ===\n")
 
@@ -74,7 +74,7 @@ def basic():
     # Create a grid of points
     for x in range(5):
         for y in range(5):
-            grid.insert(x * 5 + y, x, y)
+            grid.insert(x, y, x * 5 + y)
 
     center = (2, 2)
     print(f"Points nearest to {center} (Manhattan distance):")
@@ -105,7 +105,7 @@ def minesweeper_spatial_queue():
     neighbors = [(4,5), (6,5), (5,4), (5,6), (4,4), (6,6), (4,6), (6,4)]
     for x, y in neighbors:
         # Insert with distance as "priority" - we'll use position for nearest query
-        to_reveal.insert(0, x, y)  # 0 = priority, will be overridden by spatial distance
+        to_reveal.insert(x, y, 0)  # 0 = priority, will be overridden by spatial distance
 
     print(f"Added {len(to_reveal)} neighbors to queue")
 
@@ -161,7 +161,7 @@ def gps_track_deduplication():
         if unique_points.empty():
             # First point always added
             point_id = len(deduplicated_track)
-            unique_points.insert({"id": point_id, "lat": lat, "lon": lon}, (lat, lon))
+            unique_points.insert((lat, lon), {"id": point_id, "lat": lat, "lon": lon})
             deduplicated_track.append((lat, lon))
             print(f"Point {i}: ({lat:.4f}, {lon:.4f}) - Added (first point)")
         else:
@@ -179,7 +179,7 @@ def gps_track_deduplication():
             else:
                 # Far enough, add new point
                 point_id = len(deduplicated_track)
-                unique_points.insert({"id": point_id, "lat": lat, "lon": lon}, (lat, lon))
+                unique_points.insert((lat, lon), {"id": point_id, "lat": lat, "lon": lon})
                 deduplicated_track.append((lat, lon))
                 print(f"Point {i}: ({lat:.4f}, {lon:.4f}) - Added ({dist_km:.1f}km from nearest)")
 
@@ -195,10 +195,10 @@ def spatial_proximity_search():
 
     # City locations (approximate)
     cities = kdtree.KDTreed()
-    cities.insert(1, (37.77, -122.42))  # San Francisco
-    cities.insert(2, (34.05, -118.24))  # Los Angeles
-    cities.insert(3, (37.34, -121.89))  # San Jose
-    cities.insert(4, (38.58, -121.49))  # Sacramento
+    cities.insert((37.77, -122.42), 1)  # San Francisco
+    cities.insert((34.05, -118.24), 2)  # Los Angeles
+    cities.insert((37.34, -121.89), 3)  # San Jose
+    cities.insert((38.58, -121.49), 4)  # Sacramento
 
     query = (37.50, -122.00)  # Somewhere in the Bay Area
 
