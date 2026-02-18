@@ -231,6 +231,12 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
       count++;
     }
   }
+
+  SECTION("Structured bindings") {
+    for (auto [p, v] : tree) {
+      REQUIRE(tree.find(p)->value == v);
+    }
+  }
 }
 
 template<typename TreeType>

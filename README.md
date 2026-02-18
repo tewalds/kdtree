@@ -33,6 +33,11 @@ tree.insert(Pointd(4.1, 3.7), 7);
 auto result = tree.find_closest(Pointd(2.0, 3.0));
 std::cout << "Closest: " << result << std::endl; // Entry({1.5, 2.3}, 42)
 
+// Iterate with structured bindings
+for (auto [p, v] : tree) {
+  std::cout << "Point: " << p << ", Value: " << v << std::endl;
+}
+
 // Manhattan distance
 auto manhattan = tree.find_closest(Pointd(2.0, 3.0), Norm::L1);
 ```
