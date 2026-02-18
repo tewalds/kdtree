@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+echo "Running full test suite (including benchmarks)..."
+cd build 2>/dev/null || {
+    mkdir -p build
+    cd build
+    cmake ..
+}
+cmake --build .
+./kdtree_test
+
+cd ..
+echo "Running Python tests..."
+if [ -d "venv" ]; then
+    source venv/bin/activate
+    python3 -m pytest kdtree_test.py -v
+    deactivate
+else
+    echo "⚠ Python module not built, skipping Python tests"
+    echo "  Run: 'python3 -m venv venv' and try again."
+    exit 1
+fi
+
+echo "✓ Full test suite passed"

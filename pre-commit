@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+echo "Running C++ tests (without benchmarks)..."
+cd build 2>/dev/null || {
+    mkdir -p build
+    cd build
+    cmake .. > /dev/null
+}
+cmake --build . --quiet
+./kdtree_test '~[benchmark]' --quiet
+
+cd ..
+echo "Running Python tests..."
+if [ -d "venv" ]; then
+    source venv/bin/activate
+    python3 -m pytest kdtree_test.py --quiet
+    deactivate
+else
+    echo "⚠ Python module not built, skipping Python tests"
+    echo "  Run: 'python3 -m venv venv' and try again."
+    exit 1
+fi
+
+echo "✓ All tests passed"
