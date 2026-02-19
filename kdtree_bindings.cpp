@@ -41,6 +41,39 @@ void bind_kdtree(py::module_& m, const std::string& name) {
     auto tree_class = py::class_<Tree>(m, name.c_str())
         .def(py::init<>())
         .def(py::init<const std::vector<Entry>&>())
+        .def(py::init([](py::buffer coords, py::handle values) {
+            py::buffer_info coords_info = coords.request();
+            if (coords_info.ndim != 2 || coords_info.shape[1] != 2) {
+                throw std::runtime_error("Coordinates must be an Nx2 array");
+            }
+            size_t n = coords_info.shape[0];
+            const T* coords_ptr = static_cast<const T*>(coords_info.ptr);
+
+            std::vector<Entry> entries;
+            entries.reserve(n);
+
+            if (py::isinstance<py::buffer>(values)) {
+                // Optimized path for numeric values (like int64 IDs)
+                py::buffer_info val_info = values.cast<py::buffer>().request();
+                if (val_info.size != (ssize_t)n) {
+                    throw std::runtime_error("Values length must match coordinates");
+                }
+                const ValueType* val_ptr = static_cast<const ValueType*>(val_info.ptr);
+                for (size_t i = 0; i < n; ++i) {
+                    entries.push_back({PointType(coords_ptr[i*2], coords_ptr[i*2+1]), val_ptr[i]});
+                }
+            } else {
+                // Generic path for list of Python objects
+                auto val_seq = values.cast<py::sequence>();
+                if (val_seq.size() != n) {
+                    throw std::runtime_error("Values length must match coordinates");
+                }
+                for (size_t i = 0; i < n; ++i) {
+                    entries.push_back({PointType(coords_ptr[i*2], coords_ptr[i*2+1]), val_seq[i].cast<ValueType>()});
+                }
+            }
+            return new Tree(entries);
+        }))
         .def("empty", &Tree::empty)
         .def("size", &Tree::size)
         .def("clear", &Tree::clear)
