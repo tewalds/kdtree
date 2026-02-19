@@ -1,36 +1,11 @@
 #!/usr/bin/env python3
-
+import subprocess
 import json
 import os
-import re
-import subprocess
 import sys
+import re
 
-# Standard benchmark sizes
-SIZES = [1000, 10000, 100000, 1000000, 10000000]
 BASELINE_FILE = "bench_results.json"
-
-def run_command(cmd):
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"\nError running {' '.join(cmd)}:")
-        print(result.stderr)
-        sys.exit(1)
-    return result.stdout
-
-def build_bench():
-    print("Building C++ benchmark...", end="", flush=True)
-    run_command(["clang++", "-std=c++20", "-O3", "-I.", "bench.cpp", "-o", "bench"])
-    print(" Done.")
-
-def get_results(script_or_bin, sizes, label):
-    print(f"Running {label}...", end="", flush=True)
-    if script_or_bin.endswith(".py"):
-        output = run_command(["python3", script_or_bin] + [str(s) for s in sizes])
-    else:
-        output = run_command(["./" + script_or_bin] + [str(s) for s in sizes])
-    print(" Done.")
-    return json.loads(output)
 
 def strip_ansi(text):
     return re.sub(r'\033\[[0-9;]*m', '', text)
@@ -42,77 +17,90 @@ def format_cell(text, width, align="right"):
         return text + padding
     return padding + text
 
-def format_row(n, build_curr, build_base, query_curr, query_base, label):
-    def get_diff(curr, base):
-        if base == 0: return "+0.0%"
-        diff = (curr - base) / base * 100
-        color = "\033[91m" if diff > 5 else "\033[92m" if diff < -5 else ""
-        reset = "\033[0m" if color else ""
-        return f"{color}{diff:+.1f}%{reset}"
+def get_diff(curr, base):
+    if base is None or base == 0: return "+0.0%"
+    diff = (curr - base) / base * 100
+    color = "\033[91m" if diff > 5 else "\033[92m" if diff < -5 else ""
+    reset = "\033[0m" if color else ""
+    return f"{color}{diff:+.1f}%{reset}"
 
-    cols = [
-        format_cell(str(n), 10),
-        format_cell(f"{build_curr:.2f}", 10),
-        format_cell(get_diff(build_curr, build_base), 8),
-        format_cell(f"{query_curr:.2f}", 10),
-        format_cell(get_diff(query_curr, query_base), 8),
-        format_cell(label, 12, "left")
-    ]
-    return "| " + " | ".join(cols) + " |"
+def run_bench(path):
+    print(f"Running {path}...", end="", flush=True)
+    if path.endswith(".cpp"):
+        bin_path = path.replace(".cpp", "_bin")
+        subprocess.run(["clang++", "-std=c++20", "-O3", "-I.", path, "-o", bin_path], check=True, capture_output=True)
+        cmd = ["./" + bin_path]
+    else:
+        cmd = ["python3", path]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    print(" Done.")
+    if result.returncode != 0:
+        print(f"Error running {path}:\n{result.stderr}")
+        return []
+    try:
+        return json.loads(result.stdout)
+    except:
+        print(f"Failed to parse JSON from {path}")
+        return []
 
 def main():
     update_baseline = "--update" in sys.argv
-    custom_sizes = [int(arg) for arg in sys.argv[1:] if arg.isdigit()]
-    sizes = custom_sizes if custom_sizes else SIZES
+    bench_dir = "benchmarks"
 
-    build_bench()
-    cpp_results = get_results("bench", sizes, "C++ Core")
-    py_results = get_results("bench.py", sizes, "Python Bindings")
-    scipy_results = get_results("bench_scipy.py", sizes, "SciPy")
+    files = [os.path.join(bench_dir, f) for f in os.listdir(bench_dir)
+             if f.endswith(".py") or f.endswith(".cpp")]
+    files.sort()
 
-    baseline = {}
+    all_results = []
+    for f in files:
+        all_results.extend(run_bench(f))
+
+    # Sort results by Test, then Impl, then N
+    all_results.sort(key=lambda x: (x["test"], x["implementation"], x["n"]))
+
+    baseline = []
     if os.path.exists(BASELINE_FILE):
         with open(BASELINE_FILE, "r") as f:
             baseline = json.load(f)
 
-    print("\n" + "="*100)
-    print(f"| {'N':^10} | {'Build (ms)':^10} | {'B. Diff':^8} | {'Query (us)':^10} | {'Q. Diff':^8} | {'Implementation':^12} |")
-    print("-" * 100)
+    def find_base(test, impl, n):
+        for b in baseline:
+            if b["test"] == test and b["implementation"] == impl and b["n"] == n:
+                return b.get("time_ms")
+        return None
 
-    new_baseline = {"cpp": cpp_results, "py": py_results, "scipy": scipy_results}
+    # Compute dynamic column widths
+    max_test_len = max([len(res["test"]) for res in all_results] + [4]) # 4 for "Test"
+    test_w = max_test_len + 2
 
-    for i, n in enumerate(sizes):
-        def find_base(base_results, n_val):
-            if not base_results: return None
-            for r in base_results.get("results", []):
-                if r["n"] == n_val: return r
-            return None
+    max_impl_len = max([len(res["implementation"]) for res in all_results] + [4]) # 4 for "Impl"
+    impl_w = max_impl_len + 2
 
-        # C++ Comparison
-        c_curr = cpp_results["results"][i]
-        c_base = find_base(baseline.get("cpp"), n)
-        cb_base = c_base["build_ms"] if c_base else c_curr["build_ms"]
-        cq_base = c_base["query_us"] if c_base else c_curr["query_us"]
-        print(format_row(n, c_curr["build_ms"], cb_base, c_curr["query_us"], cq_base, "This (C++)"))
+    table_width = test_w + impl_w + 10 + 10 + 8 + 10 + 18
 
-        # Python Bindings Comparison
-        p_curr = py_results["results"][i]
-        p_base = find_base(baseline.get("py"), n)
-        pb_base = p_base["build_ms"] if p_base else p_curr["build_ms"]
-        pq_base = p_base["query_us"] if p_base else p_curr["query_us"]
-        print(format_row(n, p_curr["build_ms"], pb_base, p_curr["query_us"], pq_base, "This (Py)"))
+    print("\n" + "="*table_width)
+    header = f"| {format_cell('Test', test_w, 'left')} | {format_cell('Impl', impl_w, 'left')} | {'N':10} | {'Time (ms)':10} | {'Diff':8} | {'Iters':10} |"
+    print(header)
+    print("-" * table_width)
 
-        # SciPy Current
-        s_curr = scipy_results["results"][i]
-        print(format_row(n, s_curr["build_ms"], s_curr["build_ms"], s_curr["query_us"], s_curr["query_us"], "SciPy"))
-        print("-" * 100)
+    for res in all_results:
+        test = res["test"]
+        impl = res["implementation"]
+        n = res["n"]
+        time_ms = res["time_ms"]
+        iters = res.get("iters", 1)
+
+        base_time = find_base(test, impl, n)
+        diff_str = get_diff(time_ms, base_time)
+
+        row = f"| {format_cell(test, test_w, 'left')} | {format_cell(impl, impl_w, 'left')} | {n:10} | {time_ms:10.2f} | {format_cell(diff_str, 8)} | {format_cell(str(iters), 10)} |"
+        print(row)
 
     if update_baseline:
         with open(BASELINE_FILE, "w") as f:
-            json.dump(new_baseline, f, indent=2)
+            json.dump(all_results, f, indent=2)
         print(f"\nBaseline updated in {BASELINE_FILE}")
-    elif not os.path.exists(BASELINE_FILE):
-        print(f"\nNo baseline found. Run with --update to save these results as baseline.")
 
 if __name__ == "__main__":
     main()

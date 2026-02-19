@@ -1,10 +1,15 @@
 build
 venv
 
-bench
 *.o
 *.so
 
 __pycache__
 .pytest_cache
 *.egg-info
+
+# Generated data and plots
+plots/
+bench_results.json
+benchmarks/*_bin
+benchmarks/*.gpx
