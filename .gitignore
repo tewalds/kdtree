@@ -1,6 +1,7 @@
 build
 venv
 
+bench
 *.o
 *.so
 
