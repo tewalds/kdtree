@@ -127,6 +127,17 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("find_closest", [](const Tree& self, T x, T y, Norm norm) {
             return self.find_closest(PointType(x, y), norm);
         }, py::arg("x"), py::arg("y"), py::arg("norm") = Norm::L2)
+
+        // find_closest() with max_dist and optional return
+        .def("find_closest", [](const Tree& self, const PointType& p, T max_dist, Norm norm) {
+            return self.find_closest(p, max_dist, norm);
+        }, py::arg("point"), py::arg("max_dist"), py::arg("norm") = Norm::L2)
+        .def("find_closest", [](const Tree& self, py::handle point_like, T max_dist, Norm norm) {
+            return self.find_closest(to_point<PointType>(point_like), max_dist, norm);
+        }, py::arg("point"), py::arg("max_dist"), py::arg("norm") = Norm::L2)
+        .def("find_closest", [](const Tree& self, T x, T y, T max_dist, Norm norm) {
+            return self.find_closest(PointType(x, y), max_dist, norm);
+        }, py::arg("x"), py::arg("y"), py::arg("max_dist"), py::arg("norm") = Norm::L2)
         
         // pop_closest() with norm parameter
         .def("pop_closest", [](Tree& self, const PointType& p, Norm norm) {

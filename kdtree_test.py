@@ -60,6 +60,27 @@ def test_find_closest():
     closest = tree.find_closest(0.1, 0.1)
     assert closest.value == 1
 
+def test_find_closest_with_max_dist():
+    """Test nearest neighbor with distance limit."""
+    tree = kdtree.KDTreed()
+    tree.insert((0.0, 0.0), 1)
+    tree.insert((10.0, 10.0), 2)
+
+    # L1 (Manhattan): dist((1, 1), (0, 0)) = 1+1 = 2
+    assert tree.find_closest((1, 1), 3, kdtree.Norm.L1) is not None
+    assert tree.find_closest((1, 1), 2, kdtree.Norm.L1) is not None
+    assert tree.find_closest((1, 1), 1, kdtree.Norm.L1) is None
+
+    # L2 (Euclidian): dist((3, 4), (0, 0)) = 5
+    assert tree.find_closest((3, 4), 6, kdtree.Norm.L2) is not None
+    assert tree.find_closest((3, 4), 5, kdtree.Norm.L2) is not None
+    assert tree.find_closest((3, 4), 4, kdtree.Norm.L2) is None
+
+    # Linf (Chebyshev): dist((2, 2), (0, 0)) = max(2, 2) = 2
+    assert tree.find_closest((2, 2), 3, kdtree.Norm.Linf) is not None
+    assert tree.find_closest((2, 2), 2, kdtree.Norm.Linf) is not None
+    assert tree.find_closest((2, 2), 1, kdtree.Norm.Linf) is None
+
 def test_norm_parameter():
     """Test L1 vs L2 distance."""
     tree = kdtree.KDTreed()

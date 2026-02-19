@@ -232,6 +232,28 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
     }
   }
 
+  SECTION("find_closest with max_dist works") {
+    TreeType tree({
+        {{0, 0}, 1},
+        {{10, 10}, 2}
+    });
+
+    // L1 (Manhattan): dist({1,1}, {0,0}) = 1+1 = 2
+    REQUIRE(tree.find_closest({1, 1}, 3, Norm::L1).has_value());
+    REQUIRE(tree.find_closest({1, 1}, 2, Norm::L1).has_value());
+    REQUIRE(!tree.find_closest({1, 1}, 1, Norm::L1).has_value());
+
+    // L2 (Euclidian): dist({3,4}, {0,0}) = 5
+    REQUIRE(tree.find_closest({3, 4}, 6, Norm::L2).has_value());
+    REQUIRE(tree.find_closest({3, 4}, 5, Norm::L2).has_value());
+    REQUIRE(!tree.find_closest({3, 4}, 4, Norm::L2).has_value());
+
+    // Linf (Chebyshev): dist({2,2}, {0,0}) = max(2,2) = 2
+    REQUIRE(tree.find_closest({2, 2}, 3, Norm::Linf).has_value());
+    REQUIRE(tree.find_closest({2, 2}, 2, Norm::Linf).has_value());
+    REQUIRE(!tree.find_closest({2, 2}, 1, Norm::Linf).has_value());
+  }
+
   SECTION("Structured bindings") {
     for (auto [p, v] : tree) {
       REQUIRE(tree.find(p)->value == v);

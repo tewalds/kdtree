@@ -196,8 +196,22 @@ class KDTree {
 
   Entry find_closest(PointType p, Norm norm = Norm::L2) const {
     assert(root != nullptr);
+    return *find_closest(p, std::numeric_limits<typename PointType::value_type>::max(), norm);
+  }
+
+  std::optional<Entry> find_closest(
+      PointType p, typename PointType::value_type max_dist, Norm norm = Norm::L2) const {
+    if (!root) {
+      return std::nullopt;
+    }
+
     const std::unique_ptr<Node>* best_node = nullptr;
-    typename PointType::value_type best_dist = std::numeric_limits<typename PointType::value_type>::max();
+    typename PointType::value_type best_dist = max_dist;
+
+    // For L2, we work with squared distances internally.
+    if (norm == Norm::L2 && max_dist != std::numeric_limits<typename PointType::value_type>::max()) {
+      best_dist = max_dist * max_dist;
+    }
 
     switch(norm) {
       case Norm::L1: find_closest_impl<&distance_l1>(&root, p, best_dist, best_node); break;
@@ -206,8 +220,10 @@ class KDTree {
       // No default so it's a compilation error if they're out of sync.
     }
 
-    assert(best_node);
-    return (*best_node)->entry;
+    if (best_node) {
+      return (*best_node)->entry;
+    }
+    return std::nullopt;
   }
 
   Entry pop_closest(PointType p, Norm norm = Norm::L2) {
@@ -354,7 +370,7 @@ class KDTree {
     }
 
     typename PointType::value_type dist = DistFn((*node)->entry.p, p);
-    if (dist < best_dist) {
+    if (dist <= best_dist) {
       best_dist = dist;
       best_node = node;
     }
@@ -364,7 +380,7 @@ class KDTree {
     find_closest_impl<DistFn>(&(*node)->children[search_first], p, best_dist, best_node);
 
     typename PointType::value_type axis_dist = std::abs(p.coords[axis] - (*node)->entry.p.coords[axis]);
-    if (axis_dist < best_dist) {
+    if (axis_dist <= best_dist) {
       find_closest_impl<DistFn>(&(*node)->children[!search_first], p, best_dist, best_node);
     }
   }
@@ -380,7 +396,7 @@ class KDTree {
     }
 
     typename PointType::value_type dist = DistFn((*node)->entry.p, p);
-    if (dist < best_dist) {
+    if (dist <= best_dist) {
       best_dist = dist;
       best_node = node;
     }
@@ -390,7 +406,7 @@ class KDTree {
     find_closest_impl_mutable<DistFn>(&(*node)->children[search_first], p, best_dist, best_node);
 
     typename PointType::value_type axis_dist = std::abs(p.coords[axis] - (*node)->entry.p.coords[axis]);
-    if (axis_dist < best_dist) {
+    if (axis_dist <= best_dist) {
       find_closest_impl_mutable<DistFn>(&(*node)->children[!search_first], p, best_dist, best_node);
     }
   }
