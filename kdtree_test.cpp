@@ -167,9 +167,9 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
 
   SECTION("Finding a known value returns that value") {
     for (const Entry& e : entries) {
-      REQUIRE(tree.find_closest(e.p, Norm::L1) == e);
-      REQUIRE(tree.find_closest(e.p, Norm::L2) == e);
-      REQUIRE(tree.find_closest(e.p, Norm::Linf) == e);
+      REQUIRE(tree.find_closest(e.p, L1{}) == e);
+      REQUIRE(tree.find_closest(e.p, L2{}) == e);
+      REQUIRE(tree.find_closest(e.p, Linf{}) == e);
     }
   }
 
@@ -183,9 +183,9 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
         {{-11, -11}, 5},
     });
 
-    REQUIRE(norm_tree.find_closest({0, 0}, Norm::L1).value == 1);
-    REQUIRE(norm_tree.find_closest({0, 0}, Norm::L2).value == 2);
-    REQUIRE(norm_tree.find_closest({0, 0}, Norm::Linf).value == 3);
+    REQUIRE(norm_tree.find_closest({0, 0}, L1{})->value == 1);
+    REQUIRE(norm_tree.find_closest({0, 0}, L2{})->value == 2);
+    REQUIRE(norm_tree.find_closest({0, 0}, Linf{})->value == 3);
   }
 
   SECTION("Remove works") {
@@ -226,7 +226,7 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
     REQUIRE(tree.size() == points.size());
     int count = 0;
     while (!tree.empty() && count < 10) {
-      tree.pop_closest(PointType(3, 4), Norm::L1);
+      tree.pop_closest(PointType(3, 4), L1{});
       tree.validate();
       count++;
     }
@@ -239,19 +239,86 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
     });
 
     // L1 (Manhattan): dist({1,1}, {0,0}) = 1+1 = 2
-    REQUIRE(tree.find_closest({1, 1}, 3, Norm::L1).has_value());
-    REQUIRE(tree.find_closest({1, 1}, 2, Norm::L1).has_value());
-    REQUIRE(!tree.find_closest({1, 1}, 1, Norm::L1).has_value());
+    REQUIRE(tree.find_closest({1, 1}, 3, L1{}).has_value());
+    REQUIRE(tree.find_closest({1, 1}, 2, L1{}).has_value());
+    REQUIRE(!tree.find_closest({1, 1}, 1, L1{}).has_value());
 
     // L2 (Euclidian): dist({3,4}, {0,0}) = 5
-    REQUIRE(tree.find_closest({3, 4}, 6, Norm::L2).has_value());
-    REQUIRE(tree.find_closest({3, 4}, 5, Norm::L2).has_value());
-    REQUIRE(!tree.find_closest({3, 4}, 4, Norm::L2).has_value());
+    REQUIRE(tree.find_closest({3, 4}, 6, L2{}).has_value());
+    REQUIRE(tree.find_closest({3, 4}, 5, L2{}).has_value());
+    REQUIRE(!tree.find_closest({3, 4}, 4, L2{}).has_value());
 
     // Linf (Chebyshev): dist({2,2}, {0,0}) = max(2,2) = 2
-    REQUIRE(tree.find_closest({2, 2}, 3, Norm::Linf).has_value());
-    REQUIRE(tree.find_closest({2, 2}, 2, Norm::Linf).has_value());
-    REQUIRE(!tree.find_closest({2, 2}, 1, Norm::Linf).has_value());
+    REQUIRE(tree.find_closest({2, 2}, 3, Linf{}).has_value());
+    REQUIRE(tree.find_closest({2, 2}, 2, Linf{}).has_value());
+    REQUIRE(!tree.find_closest({2, 2}, 1, Linf{}).has_value());
+  }
+
+  SECTION("find_closest_k works") {
+    TreeType tree({
+        {{0, 0}, 1},
+        {{1, 1}, 2},
+        {{2, 2}, 3},
+        {{10, 10}, 4}
+    });
+
+    using T = typename PointType::value_type;
+    // Use values that don't narrow
+    auto res = tree.find_closest_k({T(0), T(0)}, 2);
+    REQUIRE(res.size() == 2);
+    REQUIRE(res[0].value == 1);
+
+    // Query near middle
+    auto res2 = tree.find_closest_k({T(1), T(1)}, 2);
+    REQUIRE(res2.size() == 2);
+
+    // With distance limit
+    // L2 sq_dist: {0,0}->0, {1,1}->2, {2,2}->8. So only 2 points within sq_dist 4 (dist 2).
+    auto res_lim = tree.find_closest_k({T(0), T(0)}, 10, 2, L2{});
+    REQUIRE(res_lim.size() == 2);
+
+    // L1 dist: {0,0}->0, {1,1}->2, {2,2}->4. So 3 points within dist 4.
+    auto res_l1 = tree.find_closest_k({T(0), T(0)}, 10, 4, L1{});
+    REQUIRE(res_l1.size() == 3);
+  }
+
+  SECTION("find_all_within works with many points") {
+    TreeType tree;
+    std::vector<PointType> pts;
+    std::mt19937 gen(42);
+    for (int i = 0; i < 1000; ++i) {
+      PointType p = gen_point_in_range<PointType>(gen, -100, 100);
+      if (tree.insert(p, i)) {
+        pts.push_back(p);
+      }
+    }
+
+    PointType query(0, 0);
+    double radius = 50.0;
+
+    auto test_metric = [&](auto metric, const std::string& label) {
+      INFO("Testing metric: " << label);
+      auto found = tree.find_all_within(query, radius, metric);
+
+      // Brute force check
+      std::vector<PointType> expected;
+      for (const auto& p : pts) {
+        if (metric.dist(p, query) <= metric.to_proxy(radius)) {
+          expected.push_back(p);
+        }
+      }
+
+      REQUIRE(found.size() == expected.size());
+
+      // Verify all found are actually within radius
+      for (const auto& e : found) {
+        REQUIRE(metric.dist(e.p, query) <= metric.to_proxy(radius));
+      }
+    };
+
+    test_metric(L1{}, "L1");
+    test_metric(L2{}, "L2");
+    test_metric(Linf{}, "Linf");
   }
 
   SECTION("Structured bindings") {
@@ -321,17 +388,17 @@ void run_benchmarks(const std::string& label) {
 
   BENCHMARK_ADVANCED(std::format("[{}] find_closest L1", label))(Catch::Benchmark::Chronometer meter) {
     TreeType tree(entries);
-    meter.measure([&tree, &gen](int /*i*/) { return tree.find_closest(gen(), Norm::L1); });
+    meter.measure([&tree, &gen](int /*i*/) { return tree.find_closest(gen(), L1{}); });
   };
 
   BENCHMARK_ADVANCED(std::format("[{}] find_closest L2", label))(Catch::Benchmark::Chronometer meter) {
     TreeType tree(entries);
-    meter.measure([&tree, &gen](int /*i*/) { return tree.find_closest(gen(), Norm::L2); });
+    meter.measure([&tree, &gen](int /*i*/) { return tree.find_closest(gen(), L2{}); });
   };
 
   BENCHMARK_ADVANCED(std::format("[{}] find_closest Linf", label))(Catch::Benchmark::Chronometer meter) {
     TreeType tree(entries);
-    meter.measure([&tree, &gen](int /*i*/) { return tree.find_closest(gen(), Norm::Linf); });
+    meter.measure([&tree, &gen](int /*i*/) { return tree.find_closest(gen(), Linf{}); });
   };
 
   BENCHMARK_ADVANCED(std::format("[{}] insert + pop_closest", label))(Catch::Benchmark::Chronometer meter) {

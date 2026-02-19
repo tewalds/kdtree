@@ -2,7 +2,6 @@
 """Tests for KDTree Python bindings."""
 
 import pytest
-
 import kdtree
 
 def test_point_creation():
@@ -67,19 +66,44 @@ def test_find_closest_with_max_dist():
     tree.insert((10.0, 10.0), 2)
 
     # L1 (Manhattan): dist((1, 1), (0, 0)) = 1+1 = 2
-    assert tree.find_closest((1, 1), 3, kdtree.Norm.L1) is not None
-    assert tree.find_closest((1, 1), 2, kdtree.Norm.L1) is not None
-    assert tree.find_closest((1, 1), 1, kdtree.Norm.L1) is None
+    assert tree.find_closest((1, 1), 3, kdtree.L1()) is not None
+    assert tree.find_closest((1, 1), 2, kdtree.L1()) is not None
+    assert tree.find_closest((1, 1), 1, kdtree.L1()) is None
 
     # L2 (Euclidian): dist((3, 4), (0, 0)) = 5
-    assert tree.find_closest((3, 4), 6, kdtree.Norm.L2) is not None
-    assert tree.find_closest((3, 4), 5, kdtree.Norm.L2) is not None
-    assert tree.find_closest((3, 4), 4, kdtree.Norm.L2) is None
+    assert tree.find_closest((3, 4), 6, kdtree.L2()) is not None
+    assert tree.find_closest((3, 4), 5, kdtree.L2()) is not None
+    assert tree.find_closest((3, 4), 4, kdtree.L2()) is None
 
     # Linf (Chebyshev): dist((2, 2), (0, 0)) = max(2, 2) = 2
-    assert tree.find_closest((2, 2), 3, kdtree.Norm.Linf) is not None
-    assert tree.find_closest((2, 2), 2, kdtree.Norm.Linf) is not None
-    assert tree.find_closest((2, 2), 1, kdtree.Norm.Linf) is None
+    assert tree.find_closest((2, 2), 3, kdtree.Linf()) is not None
+    assert tree.find_closest((2, 2), 2, kdtree.Linf()) is not None
+    assert tree.find_closest((2, 2), 1, kdtree.Linf()) is None
+
+def test_find_closest_k():
+    """Test finding K nearest neighbors."""
+    tree = kdtree.KDTreed()
+    tree.insert((0.0, 0.0), 1)
+    tree.insert((1.0, 1.0), 2)
+    tree.insert((2.0, 2.0), 3)
+    tree.insert((10.0, 10.0), 4)
+
+    # Basic K=2
+    res = tree.find_closest_k((0.5, 0.5), 2)
+    assert len(res) == 2
+    ids = {e.value for e in res}
+    assert ids == {1, 2}
+
+    # K=10 with limit
+    # dist((0,0), (2,2)) is 4.0 in L1
+    res = tree.find_closest_k((0.0, 0.0), 10, 4.0, kdtree.L1())
+    assert len(res) == 3
+    ids = {e.value for e in res}
+    assert ids == {1, 2, 3}
+
+    # No results within limit
+    res = tree.find_closest_k((0.5, 0.5), 10, 0.1)
+    assert len(res) == 0
 
 def test_norm_parameter():
     """Test L1 vs L2 distance."""
@@ -89,8 +113,8 @@ def test_norm_parameter():
     tree.insert((0.0, 1.0), 3)
 
     # Both work
-    result_l2 = tree.find_closest((0.5, 0.5), kdtree.Norm.L2)
-    result_l1 = tree.find_closest((0.5, 0.5), kdtree.Norm.L1)
+    result_l2 = tree.find_closest((0.5, 0.5), kdtree.L2())
+    result_l1 = tree.find_closest((0.5, 0.5), kdtree.L1())
 
     assert result_l2.value in [1, 2, 3]
     assert result_l1.value in [1, 2, 3]
@@ -161,6 +185,85 @@ def test_python_object_storage():
 
     result = tree.find_closest((2.0, 3.0))
     assert result.value["name"] in ["Alice", "Bob"]
+
+def test_toroidal():
+    """Test toroidal distance."""
+    # Domain 100x100
+    bounds = kdtree.Pointd(100, 100)
+    metric = kdtree.ToroidalL2(kdtree.L2(), bounds)
+    tree = kdtree.KDTreed()
+
+    # Point at (1,1) and (99,99)
+    tree.insert((1, 1), 1)
+    tree.insert((99, 99), 2)
+
+    # Standard Euclidean (1,1) is closer to (0,0) than (99,99)
+    # But Toroidal (99,99) is only dist 1 from boundary
+    res = tree.find_closest((0, 0), 10.0, metric)
+    assert res.value == 2 or res.value == 1 # Both are dist sqrt(2)
+
+    # Specifically check wraparound
+    tree.clear()
+    tree.insert((1, 1), 1)
+    tree.insert((10, 10), 2)
+    res = tree.find_closest((99, 99), 10.0, metric)
+    assert res.value == 1 # (99,99) to (1,1) is dist 2 in toroidal
+
+def test_find_all_within():
+    """Test finding all points within a radius."""
+    import random
+    random.seed(42)
+    tree = kdtree.KDTreed()
+    points = []
+    for i in range(1000):
+        p = (random.uniform(-100, 100), random.uniform(-100, 100))
+        if tree.insert(p, i):
+            points.append((p, i))
+
+    query = (0, 0)
+    radius = 50.0
+
+    # 1. L2
+    found_l2 = tree.find_all_within(query, radius, kdtree.L2())
+    expected_l2 = [p for p, i in points if (p[0]**2 + p[1]**2) <= radius**2]
+    assert len(found_l2) == len(expected_l2)
+    for entry in found_l2:
+        assert (entry.p.x**2 + entry.p.y**2) <= radius**2 + 1e-7
+
+    # 2. L1
+    found_l1 = tree.find_all_within(query, radius, kdtree.L1())
+    expected_l1 = [p for p, i in points if (abs(p[0]) + abs(p[1])) <= radius]
+    assert len(found_l1) == len(expected_l1)
+
+    # 3. Linf
+    found_linf = tree.find_all_within(query, radius, kdtree.Linf())
+    expected_linf = [p for p, i in points if max(abs(p[0]), abs(p[1])) <= radius]
+    assert len(found_linf) == len(expected_linf)
+
+def test_great_circle():
+    """Test Great Circle distance."""
+    # San Francisco and Los Angeles
+    sf = (37.7749, -122.4194)
+    la = (34.0522, -118.2437)
+
+    tree = kdtree.KDTreePyd()
+    tree.insert(sf, "SF")
+    tree.insert(la, "LA")
+
+    metric = kdtree.GreatCircle()
+
+    # Should find SF
+    res = tree.find_closest(sf, metric=metric)
+    assert res.value == "SF"
+
+    # Distance is roughly 550km. 600km radius should find both.
+    all_res = tree.find_all_within(sf, 600000, metric=metric)
+    assert len(all_res) == 2
+
+    # 10km radius from SF should find only SF
+    all_res = tree.find_all_within(sf, 10000, metric=metric)
+    assert len(all_res) == 1
+    assert all_res[0].value == "SF"
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

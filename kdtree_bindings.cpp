@@ -16,11 +16,11 @@ using namespace kdtree;
 template<typename PointType>
 PointType to_point(py::handle obj) {
     using T = typename PointType::value_type;
-    
+
     if (py::isinstance<PointType>(obj)) {
         return obj.cast<PointType>();
     }
-    
+
     if (py::isinstance<py::tuple>(obj) || py::isinstance<py::list>(obj)) {
         auto seq = obj.cast<py::sequence>();
         if (seq.size() != 2) {
@@ -28,8 +28,25 @@ PointType to_point(py::handle obj) {
         }
         return PointType(seq[0].cast<T>(), seq[1].cast<T>());
     }
-    
-    throw std::runtime_error("Cannot convert to Point - expected Point, tuple, or list");
+
+    if (py::isinstance<py::buffer>(obj)) {
+        py::buffer_info info = obj.cast<py::buffer>().request();
+        if (info.ndim != 1 || info.shape[0] != 2) {
+            throw std::runtime_error("Point buffer must be 1D with size 2");
+        }
+        if (info.format == py::format_descriptor<double>::format()) {
+            double* ptr = static_cast<double*>(info.ptr);
+            return PointType(static_cast<T>(ptr[0]), static_cast<T>(ptr[1]));
+        } else if (info.format == py::format_descriptor<float>::format()) {
+            float* ptr = static_cast<float*>(info.ptr);
+            return PointType(static_cast<T>(ptr[0]), static_cast<T>(ptr[1]));
+        }
+        // Fallback for other types or complex buffer layouts
+        auto seq = obj.cast<py::sequence>();
+        return PointType(seq[0].cast<T>(), seq[1].cast<T>());
+    }
+
+    throw std::runtime_error("Cannot convert to Point - expected Point, tuple, list, or 1D buffer of size 2");
 }
 
 template<typename PointType, typename ValueType>
@@ -37,7 +54,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
     using Tree = KDTree<PointType, ValueType>;
     using Entry = typename Tree::Entry;
     using T = typename PointType::value_type;
-    
+
     auto tree_class = py::class_<Tree>(m, name.c_str())
         .def(py::init<>())
         .def(py::init<const std::vector<Entry>&>())
@@ -77,7 +94,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("empty", &Tree::empty)
         .def("size", &Tree::size)
         .def("clear", &Tree::clear)
-        
+
         // insert() overloads - key (point) first, value second
         .def("insert", static_cast<bool (Tree::*)(Entry)>(&Tree::insert), py::arg("entry"))
         .def("insert", [](Tree& self, const PointType& p, ValueType val) {
@@ -89,7 +106,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("insert", [](Tree& self, T x, T y, ValueType val) {
             return self.insert(PointType(x, y), val);
         }, py::arg("x"), py::arg("y"), py::arg("value"))
-        
+
         // remove() overloads
         .def("remove", static_cast<bool (Tree::*)(PointType)>(&Tree::remove), py::arg("point"))
         .def("remove", [](Tree& self, py::handle point_like) {
@@ -98,7 +115,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("remove", [](Tree& self, T x, T y) {
             return self.remove(PointType(x, y));
         }, py::arg("x"), py::arg("y"))
-        
+
         // exists() overloads
         .def("exists", static_cast<bool (Tree::*)(PointType) const>(&Tree::exists), py::arg("point"))
         .def("exists", [](const Tree& self, py::handle point_like) {
@@ -107,7 +124,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("exists", [](const Tree& self, T x, T y) {
             return self.exists(PointType(x, y));
         }, py::arg("x"), py::arg("y"))
-        
+
         // find() overloads
         .def("find", static_cast<std::optional<Entry> (Tree::*)(PointType) const>(&Tree::find), py::arg("point"))
         .def("find", [](const Tree& self, py::handle point_like) {
@@ -116,40 +133,219 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("find", [](const Tree& self, T x, T y) {
             return self.find(PointType(x, y));
         }, py::arg("x"), py::arg("y"))
-        
-        // find_closest() with norm parameter
-        .def("find_closest", [](const Tree& self, const PointType& p, Norm norm) {
-            return self.find_closest(p, norm);
-        }, py::arg("point"), py::arg("norm") = Norm::L2)
-        .def("find_closest", [](const Tree& self, py::handle point_like, Norm norm) {
-            return self.find_closest(to_point<PointType>(point_like), norm);
-        }, py::arg("point"), py::arg("norm") = Norm::L2)
-        .def("find_closest", [](const Tree& self, T x, T y, Norm norm) {
-            return self.find_closest(PointType(x, y), norm);
-        }, py::arg("x"), py::arg("y"), py::arg("norm") = Norm::L2)
 
-        // find_closest() with max_dist and optional return
-        .def("find_closest", [](const Tree& self, const PointType& p, T max_dist, Norm norm) {
-            return self.find_closest(p, max_dist, norm);
-        }, py::arg("point"), py::arg("max_dist"), py::arg("norm") = Norm::L2)
-        .def("find_closest", [](const Tree& self, py::handle point_like, T max_dist, Norm norm) {
-            return self.find_closest(to_point<PointType>(point_like), max_dist, norm);
-        }, py::arg("point"), py::arg("max_dist"), py::arg("norm") = Norm::L2)
-        .def("find_closest", [](const Tree& self, T x, T y, T max_dist, Norm norm) {
-            return self.find_closest(PointType(x, y), max_dist, norm);
-        }, py::arg("x"), py::arg("y"), py::arg("max_dist"), py::arg("norm") = Norm::L2)
-        
-        // pop_closest() with norm parameter
-        .def("pop_closest", [](Tree& self, const PointType& p, Norm norm) {
-            return self.pop_closest(p, norm);
-        }, py::arg("point"), py::arg("norm") = Norm::L2)
-        .def("pop_closest", [](Tree& self, py::handle point_like, Norm norm) {
-            return self.pop_closest(to_point<PointType>(point_like), norm);
-        }, py::arg("point"), py::arg("norm") = Norm::L2)
-        .def("pop_closest", [](Tree& self, T x, T y, Norm norm) {
-            return self.pop_closest(PointType(x, y), norm);
-        }, py::arg("x"), py::arg("y"), py::arg("norm") = Norm::L2)
-        
+        // find_closest supporting (point), (x,y), (point, max_dist), (x,y, max_dist) + metric/kwargs
+        .def("find_closest", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::optional<Entry> {
+            PointType p;
+            double max_dist = std::numeric_limits<double>::max();
+            py::handle metric_handle = py::none();
+
+            size_t n_args = args.size();
+            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
+
+            size_t next_idx = 0;
+            try {
+                p = to_point<PointType>(args[0]);
+                next_idx = 1;
+            } catch (...) {
+                if (n_args < 2) throw;
+                p = PointType(args[0].cast<T>(), args[1].cast<T>());
+                next_idx = 2;
+            }
+
+            for (size_t i = next_idx; i < n_args; ++i) {
+                if (py::isinstance<py::float_>(args[i]) || py::isinstance<py::int_>(args[i])) {
+                    max_dist = args[i].cast<double>();
+                } else {
+                    metric_handle = args[i];
+                }
+            }
+
+            if (kwargs.contains("max_dist")) max_dist = kwargs["max_dist"].cast<double>();
+            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
+
+            if (metric_handle.is_none() || py::isinstance<L2>(metric_handle))
+                return self.template find_closest<L2>(p, max_dist, metric_handle.is_none() ? L2{} : metric_handle.cast<L2>());
+            if (py::isinstance<L1>(metric_handle))
+                return self.template find_closest<L1>(p, max_dist, metric_handle.cast<L1>());
+            if (py::isinstance<Linf>(metric_handle))
+                return self.template find_closest<Linf>(p, max_dist, metric_handle.cast<Linf>());
+            if (py::isinstance<Toroidal<L2>>(metric_handle))
+                return self.template find_closest<Toroidal<L2>>(p, max_dist, metric_handle.cast<Toroidal<L2>>());
+            if (py::isinstance<GreatCircle>(metric_handle))
+                return self.template find_closest<GreatCircle>(p, max_dist, metric_handle.cast<GreatCircle>());
+
+            throw py::type_error("Unsupported metric type");
+        })
+
+        // find_closest_k supporting (point, k), (x,y, k) + max_dist/metric/kwargs
+        .def("find_closest_k", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::vector<Entry> {
+            PointType p;
+            size_t k = 1;
+            double max_dist = std::numeric_limits<double>::max();
+            py::handle metric_handle = py::none();
+
+            size_t n_args = args.size();
+            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
+
+            size_t next_idx = 0;
+            try {
+                p = to_point<PointType>(args[0]);
+                next_idx = 1;
+            } catch (...) {
+                if (n_args < 2) throw;
+                p = PointType(args[0].cast<T>(), args[1].cast<T>());
+                next_idx = 2;
+            }
+
+            if (next_idx < n_args) {
+                k = args[next_idx].cast<size_t>();
+                next_idx++;
+            }
+
+            for (size_t i = next_idx; i < n_args; ++i) {
+                if (py::isinstance<py::float_>(args[i]) || py::isinstance<py::int_>(args[i])) {
+                    max_dist = args[i].cast<double>();
+                } else {
+                    metric_handle = args[i];
+                }
+            }
+
+            if (kwargs.contains("k")) k = kwargs["k"].cast<size_t>();
+            if (kwargs.contains("max_dist")) max_dist = kwargs["max_dist"].cast<double>();
+            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
+
+            if (metric_handle.is_none() || py::isinstance<L2>(metric_handle))
+                return self.template find_closest_k<L2>(p, k, max_dist, metric_handle.is_none() ? L2{} : metric_handle.cast<L2>());
+            if (py::isinstance<L1>(metric_handle))
+                return self.template find_closest_k<L1>(p, k, max_dist, metric_handle.cast<L1>());
+            if (py::isinstance<Linf>(metric_handle))
+                return self.template find_closest_k<Linf>(p, k, max_dist, metric_handle.cast<Linf>());
+            if (py::isinstance<Toroidal<L2>>(metric_handle))
+                return self.template find_closest_k<Toroidal<L2>>(p, k, max_dist, metric_handle.cast<Toroidal<L2>>());
+            if (py::isinstance<GreatCircle>(metric_handle))
+                return self.template find_closest_k<GreatCircle>(p, k, max_dist, metric_handle.cast<GreatCircle>());
+
+            throw py::type_error("Unsupported metric type");
+        })
+
+        // find_all_within supporting (point, radius), (x,y, radius) + metric/kwargs
+        .def("find_all_within", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::vector<Entry> {
+            PointType p;
+            double radius = 0;
+            py::handle metric_handle = py::none();
+
+            size_t n_args = args.size();
+            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
+
+            size_t next_idx = 0;
+            try {
+                p = to_point<PointType>(args[0]);
+                next_idx = 1;
+            } catch (...) {
+                if (n_args < 2) throw;
+                p = PointType(args[0].cast<T>(), args[1].cast<T>());
+                next_idx = 2;
+            }
+
+            if (next_idx < n_args) {
+                radius = args[next_idx].cast<double>();
+                next_idx++;
+            }
+
+            if (next_idx < n_args) metric_handle = args[next_idx];
+            if (kwargs.contains("radius")) radius = kwargs["radius"].cast<double>();
+            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
+
+            if (metric_handle.is_none() || py::isinstance<L2>(metric_handle))
+                return self.template find_all_within<L2>(p, radius, metric_handle.is_none() ? L2{} : metric_handle.cast<L2>());
+            if (py::isinstance<L1>(metric_handle))
+                return self.template find_all_within<L1>(p, radius, metric_handle.cast<L1>());
+            if (py::isinstance<Linf>(metric_handle))
+                return self.template find_all_within<Linf>(p, radius, metric_handle.cast<Linf>());
+            if (py::isinstance<Toroidal<L2>>(metric_handle))
+                return self.template find_all_within<Toroidal<L2>>(p, radius, metric_handle.cast<Toroidal<L2>>());
+            if (py::isinstance<GreatCircle>(metric_handle))
+                return self.template find_all_within<GreatCircle>(p, radius, metric_handle.cast<GreatCircle>());
+
+            throw py::type_error("Unsupported metric type");
+        })
+
+        // find_all_within supporting (point, radius), (x,y, radius) + metric/kwargs
+        .def("find_all_within", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::vector<Entry> {
+            PointType p;
+            double radius = 0;
+            py::handle metric_handle = py::none();
+
+            size_t n_args = args.size();
+            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
+
+            size_t next_idx = 0;
+            try {
+                p = to_point<PointType>(args[0]);
+                next_idx = 1;
+            } catch (...) {
+                if (n_args < 2) throw;
+                p = PointType(args[0].cast<T>(), args[1].cast<T>());
+                next_idx = 2;
+            }
+
+            if (next_idx < n_args) {
+                radius = args[next_idx].cast<double>();
+                next_idx++;
+            }
+
+            if (next_idx < n_args) metric_handle = args[next_idx];
+            if (kwargs.contains("radius")) radius = kwargs["radius"].cast<double>();
+            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
+
+            if (metric_handle.is_none() || py::isinstance<L2>(metric_handle))
+                return self.template find_all_within<L2>(p, radius, metric_handle.is_none() ? L2{} : metric_handle.cast<L2>());
+            if (py::isinstance<L1>(metric_handle))
+                return self.template find_all_within<L1>(p, radius, metric_handle.cast<L1>());
+            if (py::isinstance<Linf>(metric_handle))
+                return self.template find_all_within<Linf>(p, radius, metric_handle.cast<Linf>());
+            if (py::isinstance<Toroidal<L2>>(metric_handle))
+                return self.template find_all_within<Toroidal<L2>>(p, radius, metric_handle.cast<Toroidal<L2>>());
+            if (py::isinstance<GreatCircle>(metric_handle))
+                return self.template find_all_within<GreatCircle>(p, radius, metric_handle.cast<GreatCircle>());
+
+            throw py::type_error("Unsupported metric type");
+        })
+
+        // pop_closest supporting (point), (x,y) + metric/kwargs
+        .def("pop_closest", [](Tree& self, py::args args, py::kwargs kwargs) -> Entry {
+            PointType p;
+            py::handle metric_handle = py::none();
+
+            size_t n_args = args.size();
+            size_t next_idx = 0;
+            try {
+                p = to_point<PointType>(args[0]);
+                next_idx = 1;
+            } catch (...) {
+                if (n_args < 2) throw;
+                p = PointType(args[0].cast<T>(), args[1].cast<T>());
+                next_idx = 2;
+            }
+
+            if (next_idx < n_args) metric_handle = args[next_idx];
+            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
+
+            if (metric_handle.is_none() || py::isinstance<L2>(metric_handle))
+                return self.template pop_closest<L2>(p, metric_handle.is_none() ? L2{} : metric_handle.cast<L2>());
+            if (py::isinstance<L1>(metric_handle))
+                return self.template pop_closest<L1>(p, metric_handle.cast<L1>());
+            if (py::isinstance<Linf>(metric_handle))
+                return self.template pop_closest<Linf>(p, metric_handle.cast<Linf>());
+            if (py::isinstance<Toroidal<L2>>(metric_handle))
+                return self.template pop_closest<Toroidal<L2>>(p, metric_handle.cast<Toroidal<L2>>());
+            if (py::isinstance<GreatCircle>(metric_handle))
+                return self.template pop_closest<GreatCircle>(p, metric_handle.cast<GreatCircle>());
+
+            throw py::type_error("Unsupported metric type");
+        })
+
         .def("rebalance", &Tree::rebalance)
         .def("balance_str", &Tree::balance_str)
         .def("depth_max", static_cast<size_t (Tree::*)() const>(&Tree::depth_max))
@@ -167,7 +363,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
 template<typename T>
 void bind_point(py::module_& m, const std::string& name) {
     using P = Point<T>;
-    
+
     py::class_<P>(m, name.c_str())
         .def(py::init<>())
         .def(py::init<T, T>())
@@ -202,7 +398,7 @@ void bind_point(py::module_& m, const std::string& name) {
 template<typename PointType, typename ValueType>
 void bind_entry(py::module_& m, const std::string& name) {
     using E = Entry<PointType, ValueType>;
-    
+
     py::class_<E>(m, name.c_str())
         .def(py::init<>())
         .def(py::init<PointType, ValueType>())
@@ -220,52 +416,41 @@ void bind_entry(py::module_& m, const std::string& name) {
 PYBIND11_MODULE(kdtree, m) {
     m.doc() = R"doc(
         KDTree: Dynamic 2D spatial index
-        
-        Unlike scipy.spatial.KDTree, supports dynamic insert/remove without rebuilding.
-        
-        Tree types:
-            KDTreei  - int coords, int64 values
-            KDTreed  - double coords, int64 values (recommended)
-            KDTreePyi - int coords, Python object values
-            KDTreePyd - double coords, Python object values
-        
-        Example:
-            tree = kdtree.KDTreed()
-            tree.insert((1.5, 2.3), 42)
-            tree.insert(4.1, 3.7, 7)
-            result = tree.find_closest((2.0, 3.0))
-            
-            # Manhattan distance
-            result_l1 = tree.find_closest((2.0, 3.0), kdtree.Norm.L1)
     )doc";
-    
-    py::enum_<Norm>(m, "Norm")
-        .value("L1", Norm::L1, "Manhattan distance")
-        .value("L2", Norm::L2, "Euclidean squared distance (default)")
-        .value("Linf", Norm::Linf, "Chebyshev distance")
-        .export_values();
-    
+
+    // Bind Metric policies
+    py::class_<L1>(m, "L1").def(py::init<>());
+    py::class_<L2>(m, "L2").def(py::init<>());
+    py::class_<Linf>(m, "Linf").def(py::init<>());
+
+    py::class_<GreatCircle>(m, "GreatCircle")
+        .def(py::init<double>(), py::arg("radius") = 6371000.0)
+        .def_readwrite("radius", &GreatCircle::radius);
+
+    // Bind Toroidal adapter (pre-bound for common metrics)
+    py::class_<Toroidal<L2>>(m, "ToroidalL2")
+        .def(py::init<L2, Pointd>(), py::arg("base"), py::arg("bounds"));
+
     // Bind Point types (only int and double for Python)
     bind_point<int>(m, "Pointi");
     bind_point<double>(m, "Pointd");
-    
+
     // Bind Entry types for type annotations
     bind_entry<Pointi, int64_t>(m, "Entryi");
     bind_entry<Pointd, int64_t>(m, "Entryd");
     bind_entry<Pointi, py::object>(m, "EntryPyi");
     bind_entry<Pointd, py::object>(m, "EntryPyd");
-    
+
     // Generic "Entry" alias for documentation
     m.attr("Entry") = m.attr("Entryd");
-    m.attr("Value") = m.attr("Entryd"); // Backward compatibility for now
-    
+
     // Bind int64_t storage trees (for indices/IDs)
     bind_kdtree<Pointi, int64_t>(m, "KDTreei");
     bind_kdtree<Pointd, int64_t>(m, "KDTreed");
-    
+
     // Bind Python object storage trees (for arbitrary objects)
     bind_kdtree<Pointi, py::object>(m, "KDTreePyi");
     bind_kdtree<Pointd, py::object>(m, "KDTreePyd");
-    
+
     m.attr("__version__") = "1.0.0";
 }

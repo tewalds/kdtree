@@ -13,7 +13,7 @@ target_include_directories(kdtree INTERFACE
 )
 
 # Tests
-add_executable(kdtree_test kdtree_test.cc catch2/catch_amalgamated.cpp)
+add_executable(kdtree_test kdtree_test.cpp catch2/catch_amalgamated.cpp)
 target_link_libraries(kdtree_test PRIVATE kdtree)
 target_include_directories(kdtree_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(kdtree_test PRIVATE
