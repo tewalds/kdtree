@@ -2,18 +2,15 @@
 set -e
 
 echo "Running full test suite (including benchmarks)..."
-cd build 2>/dev/null || {
-    mkdir -p build
-    cd build
-    cmake ..
-}
-cmake --build .
-./kdtree_test
+mkdir -p build
+cmake -S . -B build
+cmake --build build
+build/kdtree_test
 
-cd ..
 echo "Running Python tests..."
 if [ -d "venv" ]; then
     source venv/bin/activate
+    pip install -e .
     python3 -m pytest kdtree_test.py -v
     deactivate
 else
