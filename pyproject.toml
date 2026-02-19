@@ -11,7 +11,7 @@ requires-python = ">=3.8"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
-    {name = "Your Name"}
+    {name = "Timo Ewalds"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -20,6 +20,11 @@ classifiers = [
     "Programming Language :: C++",
 ]
 dependencies = ["pybind11>=2.10.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kdtree*"]
+exclude = ["plots*", "catch2*", "benchmarks*", "venv*"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
