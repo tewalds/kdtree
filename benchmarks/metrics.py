@@ -13,23 +13,27 @@ def run_metric_bench(tree, queries, metric_name, metric, n):
     for q in queries:
         tree.find_closest(q, metric=metric)
     ms = (time.perf_counter() - start) * 1000
-    results.append({"test": f"Query: find_closest ({metric_name})", "implementation": "Python", "n": n, "time_ms": ms, "iters": num_queries})
+    results.append({"test": "Query: find_closest", "implementation": f"Python ({metric_name})", "n": n, "time_ms": ms, "iters": num_queries})
 
     # 2. find_closest_k (k=5)
     start = time.perf_counter()
     for q in queries:
         tree.find_closest_k(q, 5, metric=metric)
     ms = (time.perf_counter() - start) * 1000
-    results.append({"test": f"Query: find_closest_k=5 ({metric_name})", "implementation": "Python", "n": n, "time_ms": ms, "iters": num_queries})
+    results.append({"test": "Query: find_closest_k=5", "implementation": f"Python ({metric_name})", "n": n, "time_ms": ms, "iters": num_queries})
 
     # 3. find_all_within
     radius = 10.0
-    if metric_name == "GreatCircle": radius = 100000.0 # 100km
+    if metric_name == "GreatCircle":
+        radius = 100000.0 # 100km
+    elif "L2sq" in metric_name:
+        radius = radius * radius
+
     start = time.perf_counter()
     for q in queries:
         tree.find_all_within(q, radius, metric=metric)
     ms = (time.perf_counter() - start) * 1000
-    results.append({"test": f"Query: find_all_within ({metric_name})", "implementation": "Python", "n": n, "time_ms": ms, "iters": num_queries})
+    results.append({"test": "Query: find_all_within", "implementation": f"Python ({metric_name})", "n": n, "time_ms": ms, "iters": num_queries})
 
     return results
 
@@ -46,8 +50,12 @@ def main():
 
         all_res.extend(run_metric_bench(tree, queries, "L1", kdtree.L1(), n))
         all_res.extend(run_metric_bench(tree, queries, "L2", kdtree.L2(), n))
+        all_res.extend(run_metric_bench(tree, queries, "L2sq", kdtree.L2sq(), n))
         all_res.extend(run_metric_bench(tree, queries, "Linf", kdtree.Linf(), n))
-        all_res.extend(run_metric_bench(tree, queries, "ToroidalL2", kdtree.ToroidalL2(kdtree.L2(), kdtree.Pointd(1000, 1000)), n))
+        all_res.extend(run_metric_bench(tree, queries, "ToroidalL1", kdtree.ToroidalL1(kdtree.Pointd(1000, 1000)), n))
+        all_res.extend(run_metric_bench(tree, queries, "ToroidalL2", kdtree.ToroidalL2(kdtree.Pointd(1000, 1000)), n))
+        all_res.extend(run_metric_bench(tree, queries, "ToroidalL2sq", kdtree.ToroidalL2sq(kdtree.Pointd(1000, 1000)), n))
+        all_res.extend(run_metric_bench(tree, queries, "ToroidalLinf", kdtree.ToroidalLinf(kdtree.Pointd(1000, 1000)), n))
         all_res.extend(run_metric_bench(tree, queries, "GreatCircle", kdtree.GreatCircle(), n))
 
     print(json.dumps(all_res, indent=2))

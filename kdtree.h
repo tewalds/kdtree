@@ -46,10 +46,6 @@ struct Point {
   bool operator!=(const Point& o) const { return !(*this == o); }
   bool operator<(const Point& o) const { return x != o.x ? x < o.x : y < o.y; }
 
-  double distance(const Point& o) const {
-    return std::hypot(static_cast<double>(x - o.x), static_cast<double>(y - o.y));
-  }
-
   friend std::ostream& operator<<(std::ostream& stream, const Point& p) {
     return stream << "{" << p.x << ", " << p.y << "}";
   }
@@ -76,76 +72,84 @@ struct Entry {
 };
 
 struct L1 {
-  template <typename T>
-  T dist(Point<T> a, Point<T> b) const {
+  template <typename T, typename U>
+  auto dist(Point<T> a, Point<U> b) const {
     return std::abs(a.x - b.x) + std::abs(a.y - b.y);
   }
-  template <typename T>
-  T axis_dist(T q, T p, int) const {
-    return std::abs(q - p);
+  template <typename T, typename U>
+  auto axis_dist(Point<T> a, Point<U> b, int axis) const {
+    return std::abs(a.coords[axis] - b.coords[axis]);
   }
-  template <typename T>
-  T to_proxy(T d) const { return d; }
 };
 
 struct L2 {
-  template <typename T>
-  T dist(Point<T> a, Point<T> b) const {
-    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  template <typename T, typename U>
+  double dist(Point<T> a, Point<U> b) const {
+    return std::hypot(static_cast<double>(a.x) - b.x, static_cast<double>(a.y) - b.y);
   }
-  template <typename T>
-  T axis_dist(T q, T p, int) const {
-    return std::abs(q - p);
+  template <typename T, typename U>
+  double axis_dist(Point<T> a, Point<U> b, int axis) const {
+    return std::abs(static_cast<double>(a.coords[axis]) - b.coords[axis]);
   }
-  template <typename T>
-  T to_proxy(T d) const {
-    if (d == std::numeric_limits<T>::max()) return d;
+};
+
+struct L2sq {
+  template <typename T, typename U>
+  auto dist(Point<T> a, Point<U> b) const {
+    auto dx = a.x - b.x;
+    auto dy = a.y - b.y;
+    return dx * dx + dy * dy;
+  }
+  template <typename T, typename U>
+  auto axis_dist(Point<T> a, Point<U> b, int axis) const {
+    auto d = a.coords[axis] - b.coords[axis];
     return d * d;
   }
 };
 
 struct Linf {
-  template <typename T>
-  T dist(Point<T> a, Point<T> b) const {
+  template <typename T, typename U>
+  auto dist(Point<T> a, Point<U> b) const {
     return std::max(std::abs(a.x - b.x), std::abs(a.y - b.y));
   }
-  template <typename T>
-  T axis_dist(T q, T p, int) const {
-    return std::abs(q - p);
+  template <typename T, typename U>
+  auto axis_dist(Point<T> a, Point<U> b, int axis) const {
+    return std::abs(a.coords[axis] - b.coords[axis]);
   }
-  template <typename T>
-  T to_proxy(T d) const { return d; }
 };
 
-template <typename BaseMetric>
+template <typename BaseMetric, typename T>
 struct Toroidal {
+  Point<T> bounds;
   BaseMetric base;
-  Pointd bounds;
 
-  template <typename T>
-  T dist(Point<T> a, Point<T> b) const {
-    Point<T> delta(std::abs(a.x - b.x), std::abs(a.y - b.y));
-    delta.x = std::min(delta.x, static_cast<T>(bounds.x) - delta.x);
-    delta.y = std::min(delta.y, static_cast<T>(bounds.y) - delta.y);
-    return base.dist(Point<T>(0, 0), delta);
+  Toroidal(Point<T> b) : bounds(b), base() {}
+
+  template <typename U, typename V>
+  auto dist(Point<U> a, Point<V> b) const {
+    auto dx = std::abs(a.x - b.x);
+    auto dy = std::abs(a.y - b.y);
+    dx = std::min(dx, static_cast<decltype(dx)>(bounds.x) - dx);
+    dy = std::min(dy, static_cast<decltype(dy)>(bounds.y) - dy);
+    return base.dist(Point<decltype(dx)>(0, 0), Point<decltype(dx)>(dx, dy));
   }
 
-  template <typename T>
-  T axis_dist(T q, T p, int axis) const {
-    T d = std::abs(q - p);
-    T b = (axis == 0 ? static_cast<T>(bounds.x) : static_cast<T>(bounds.y));
-    return std::min(d, b - d);
+  template <typename U, typename V>
+  auto axis_dist(Point<U> a, Point<V> b, int axis) const {
+    auto d = std::abs(a.coords[axis] - b.coords[axis]);
+    auto bd = static_cast<decltype(d)>(bounds.coords[axis]);
+    auto dist = std::min(d, bd - d);
+    Point<decltype(dist)> p1(0, 0), p2(0, 0);
+    p2.coords[axis] = dist;
+    return base.axis_dist(p1, p2, axis);
   }
-
-  template <typename T>
-  T to_proxy(T d) const { return base.to_proxy(d); }
 };
 
 struct GreatCircle {
   double radius = 6371000.0; // Earth radius in meters
 
-  template <typename T>
-  double dist(Point<T> a, Point<T> b) const {
+  template <typename T, typename U>
+  double dist(Point<T> a, Point<U> b) const {
     const double PI = 3.14159265358979323846;
     double lat1 = static_cast<double>(a.x) * PI / 180.0;
     double lat2 = static_cast<double>(b.x) * PI / 180.0;
@@ -158,15 +162,12 @@ struct GreatCircle {
     return 2.0 * radius * std::asin(std::sqrt(x));
   }
 
-  template <typename T>
-  double axis_dist(T q, T p, int axis) const {
+  template <typename T, typename U>
+  double axis_dist(Point<T> a, Point<U> b, int axis) const {
     const double PI = 3.14159265358979323846;
-    if (axis == 0) return static_cast<double>(std::abs(q - p)) * (PI * radius / 180.0);
-    return 0.0; // Disable pruning on longitude for absolute correctness in this simple version
+    if (axis == 0) return static_cast<double>(std::abs(a.x - b.x)) * (PI * radius / 180.0);
+    return 0.0; // Disable pruning on longitude
   }
-
-  template <typename T>
-  double to_proxy(T d) const { return static_cast<double>(d); }
 };
 
 template<class PointType = Pointd, class ValueType = int64_t>
@@ -287,50 +288,43 @@ class KDTree {
     return {};
   }
 
-  Entry find_closest(PointType p) const {
-    return *find_closest(p, std::numeric_limits<double>::max(), L2{});
+  template <typename Metric = L2sq>
+  Entry find_closest(PointType p, const Metric& metric = Metric{}) const {
+    assert(root != nullptr);
+    return *find_closest(p, metric, -1);
   }
 
   template <typename Metric>
-  std::optional<Entry> find_closest(PointType p, const Metric& metric) const {
-    return find_closest(p, std::numeric_limits<double>::max(), metric);
-  }
+  std::optional<Entry> find_closest(PointType p, const Metric& metric, double max_dist) const {
+    if (!root) {
+      return std::nullopt;
+    }
 
-  template <typename Metric = L2>
-  std::optional<Entry> find_closest(
-      PointType p, double max_dist, const Metric& metric = Metric{}) const {
-    if (!root) return std::nullopt;
+    using DistanceType = decltype(metric.dist(p, root->entry.p));
+    const Node* best_node = nullptr;
+    DistanceType best_dist = (max_dist < 0 ? std::numeric_limits<DistanceType>::max()
+                                           : static_cast<DistanceType>(max_dist));
 
-    const std::unique_ptr<Node>* best_node = nullptr;
-    double best_dist = metric.to_proxy(max_dist);
-
-    find_closest_impl<Metric>(&root, p, best_dist, best_node, metric);
+    find_closest_impl<Metric>(root.get(), p, best_dist, best_node, metric);
 
     if (best_node) {
-      return (*best_node)->entry;
+      return best_node->entry;
     }
     return std::nullopt;
   }
 
-  std::vector<Entry> find_closest_k(PointType p, size_t k) const {
-    return find_closest_k(p, k, std::numeric_limits<double>::max(), L2{});
-  }
+  template <typename Metric = L2sq>
+  std::vector<Entry> find_closest_k(PointType p, size_t k, const Metric& metric = Metric{}, double max_dist = -1.0) const {
+    if (!root || k == 0) {
+      return {};
+    }
 
-  template <typename Metric>
-  std::vector<Entry> find_closest_k(PointType p, size_t k, const Metric& metric) const {
-    return find_closest_k(p, k, std::numeric_limits<double>::max(), metric);
-  }
+    using DistanceType = decltype(metric.dist(p, root->entry.p));
+    std::priority_queue<std::pair<DistanceType, const Node*>> pq;
+    DistanceType best_dist = (max_dist < 0 ? std::numeric_limits<DistanceType>::max()
+                                           : static_cast<DistanceType>(max_dist));
 
-  template <typename Metric = L2>
-  std::vector<Entry> find_closest_k(
-      PointType p, size_t k, double max_dist, const Metric& metric = Metric{}) const {
-    if (!root || k == 0) return {};
-
-    using DistEntry = std::pair<double, const Node*>;
-    std::priority_queue<DistEntry> pq;
-    double best_dist = metric.to_proxy(max_dist);
-
-    find_closest_k_impl<Metric>(&root, p, k, best_dist, pq, metric);
+    find_closest_k_impl<Metric>(root.get(), p, k, best_dist, pq, metric);
 
     std::vector<Entry> results;
     results.reserve(pq.size());
@@ -342,32 +336,44 @@ class KDTree {
     return results;
   }
 
-  template <typename Metric = L2>
-  std::vector<Entry> find_all_within(
-      PointType p, double radius, const Metric& metric = Metric{}) const {
-    if (!root) return {};
+  template <typename Metric>
+  std::vector<Entry> find_all_within(PointType p, const Metric& metric, double radius) const {
+    if (!root) {
+      return {};
+    }
     std::vector<Entry> results;
-    double proxy_radius = metric.to_proxy(radius);
-    find_all_within_impl<Metric>(&root, p, proxy_radius, results, metric);
+    using DistanceType = decltype(metric.dist(p, root->entry.p));
+    find_all_within_impl<Metric>(root.get(), p, static_cast<DistanceType>(radius), results, metric);
     return results;
   }
 
-  Entry pop_closest(PointType p) {
-    return pop_closest(p, L2{});
+
+  template <typename Metric = L2sq>
+  Entry pop_closest(PointType p, const Metric& metric = Metric{}) {
+    assert(root != nullptr);
+    return *pop_closest(p, metric, -1);
   }
 
   template <typename Metric>
-  Entry pop_closest(PointType p, const Metric& metric) {
-    assert(root != nullptr);
+  std::optional<Entry> pop_closest(PointType p, const Metric& metric, double max_dist) {
+    if (!root) {
+      return std::nullopt;
+    }
+
     std::unique_ptr<Node>* best_node = nullptr;
-    double best_dist = std::numeric_limits<double>::max();
+
+    using DistanceType = decltype(metric.dist(p, root->entry.p));
+    DistanceType best_dist = (max_dist < 0 ? std::numeric_limits<DistanceType>::max()
+                                           : static_cast<DistanceType>(max_dist));
 
     find_closest_impl_mutable<Metric>(&root, p, best_dist, best_node, metric);
 
-    assert(best_node);
-    Entry out = (*best_node)->entry;
-    remove_node(*best_node);
-    return out;
+    if (best_node) {
+      Entry out = (*best_node)->entry;
+      remove_node(*best_node);
+      return out;
+    }
+    return std::nullopt;
   }
 
   void print_tree(std::ostream& stream = std::cout) const {
@@ -475,44 +481,44 @@ class KDTree {
   }
 
   // Const version for find_closest
-  template <typename Metric>
+  template <typename Metric, typename DistanceType>
   void find_closest_impl(
-      const std::unique_ptr<Node>* node, PointType p,
-      double& best_dist,
-      const std::unique_ptr<Node>*& best_node,
+      const Node* node, PointType p,
+      DistanceType& best_dist,
+      const Node*& best_node,
       const Metric& metric) const {
-    if (!*node) {
+    if (!node) {
       return;
     }
 
-    double dist = static_cast<double>(metric.dist((*node)->entry.p, p));
+    auto dist = metric.dist(node->entry.p, p);
     if (dist <= best_dist) {
       best_dist = dist;
       best_node = node;
     }
 
-    int axis = (*node)->depth % 2;
-    int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
-    find_closest_impl<Metric>(&(*node)->children[search_first], p, best_dist, best_node, metric);
+    int axis = node->depth % 2;
+    int search_first = (p.coords[axis] < node->entry.p.coords[axis]) ? 0 : 1;
+    find_closest_impl<Metric>(node->children[search_first].get(), p, best_dist, best_node, metric);
 
-    double ad = static_cast<double>(metric.axis_dist(p.coords[axis], (*node)->entry.p.coords[axis], axis));
-    if (metric.to_proxy(ad) <= best_dist) {
-      find_closest_impl<Metric>(&(*node)->children[!search_first], p, best_dist, best_node, metric);
+    auto ad = metric.axis_dist(p, node->entry.p, axis);
+    if (ad <= best_dist) {
+      find_closest_impl<Metric>(node->children[!search_first].get(), p, best_dist, best_node, metric);
     }
   }
 
   // Mutable version for pop_closest
-  template <typename Metric>
+  template <typename Metric, typename DistanceType>
   void find_closest_impl_mutable(
       std::unique_ptr<Node>* node, PointType p,
-      double& best_dist,
+      DistanceType& best_dist,
       std::unique_ptr<Node>*& best_node,
       const Metric& metric) {
     if (!*node) {
       return;
     }
 
-    double dist = static_cast<double>(metric.dist((*node)->entry.p, p));
+    auto dist = metric.dist((*node)->entry.p, p);
     if (dist <= best_dist) {
       best_dist = dist;
       best_node = node;
@@ -522,23 +528,25 @@ class KDTree {
     int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
     find_closest_impl_mutable<Metric>(&(*node)->children[search_first], p, best_dist, best_node, metric);
 
-    double ad = static_cast<double>(metric.axis_dist(p.coords[axis], (*node)->entry.p.coords[axis], axis));
-    if (metric.to_proxy(ad) <= best_dist) {
+    auto ad = metric.axis_dist(p, (*node)->entry.p, axis);
+    if (ad <= best_dist) {
       find_closest_impl_mutable<Metric>(&(*node)->children[!search_first], p, best_dist, best_node, metric);
     }
   }
 
-  template <typename Metric>
+  template <typename Metric, typename DistanceType>
   void find_closest_k_impl(
-      const std::unique_ptr<Node>* node, PointType p, size_t k,
-      double& best_dist,
-      std::priority_queue<std::pair<double, const Node*>>& pq,
+      const Node* node, PointType p, size_t k,
+      DistanceType& best_dist,
+      std::priority_queue<std::pair<DistanceType, const Node*>>& pq,
       const Metric& metric) const {
-    if (!*node) return;
+    if (!node) {
+      return;
+    }
 
-    double dist = static_cast<double>(metric.dist((*node)->entry.p, p));
+    auto dist = metric.dist(node->entry.p, p);
     if (dist <= best_dist) {
-      pq.push({dist, node->get()});
+      pq.push({dist, node});
       if (pq.size() > k) {
         pq.pop();
       }
@@ -547,35 +555,37 @@ class KDTree {
       }
     }
 
-    int axis = (*node)->depth % 2;
-    int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
-    find_closest_k_impl<Metric>(&(*node)->children[search_first], p, k, best_dist, pq, metric);
+    int axis = node->depth % 2;
+    int search_first = (p.coords[axis] < node->entry.p.coords[axis]) ? 0 : 1;
+    find_closest_k_impl<Metric>(node->children[search_first].get(), p, k, best_dist, pq, metric);
 
-    double ad = static_cast<double>(metric.axis_dist(p.coords[axis], (*node)->entry.p.coords[axis], axis));
-    if (metric.to_proxy(ad) <= best_dist) {
-      find_closest_k_impl<Metric>(&(*node)->children[!search_first], p, k, best_dist, pq, metric);
+    auto ad = metric.axis_dist(p, node->entry.p, axis);
+    if (ad <= best_dist) {
+      find_closest_k_impl<Metric>(node->children[!search_first].get(), p, k, best_dist, pq, metric);
     }
   }
 
-  template <typename Metric>
+  template <typename Metric, typename DistanceType>
   void find_all_within_impl(
-      const std::unique_ptr<Node>* node, PointType p,
-      double proxy_radius,
+      const Node* node, PointType p,
+      DistanceType radius,
       std::vector<Entry>& results,
       const Metric& metric) const {
-    if (!*node) return;
-
-    if (static_cast<double>(metric.dist((*node)->entry.p, p)) <= proxy_radius) {
-      results.push_back((*node)->entry);
+    if (!node) {
+      return;
     }
 
-    int axis = (*node)->depth % 2;
-    int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
-    find_all_within_impl<Metric>(&(*node)->children[search_first], p, proxy_radius, results, metric);
+    if (metric.dist(node->entry.p, p) <= radius) {
+      results.push_back(node->entry);
+    }
 
-    double ad = static_cast<double>(metric.axis_dist(p.coords[axis], (*node)->entry.p.coords[axis], axis));
-    if (metric.to_proxy(ad) <= proxy_radius) {
-      find_all_within_impl<Metric>(&(*node)->children[!search_first], p, proxy_radius, results, metric);
+    int axis = node->depth % 2;
+    int search_first = (p.coords[axis] < node->entry.p.coords[axis]) ? 0 : 1;
+    find_all_within_impl<Metric>(node->children[search_first].get(), p, radius, results, metric);
+
+    auto ad = metric.axis_dist(p, node->entry.p, axis);
+    if (ad <= radius) {
+      find_all_within_impl<Metric>(node->children[!search_first].get(), p, radius, results, metric);
     }
   }
 

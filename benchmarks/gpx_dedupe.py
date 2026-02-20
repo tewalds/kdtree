@@ -38,7 +38,7 @@ def run_all():
         tree_dedupe = kdtree.KDTreed()
         kept = 0
         for p in points:
-            if not tree_dedupe.find_closest(p, val):
+            if not tree_dedupe.find_closest(p, kdtree.L2sq(), val * val):
                 tree_dedupe.insert(p, kept)
                 kept += 1
         results.append({"test": f"GPX Dedupe ({label})", "implementation": "Python", "n": n, "time_ms": (time.perf_counter()-start)*1000})

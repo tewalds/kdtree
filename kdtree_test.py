@@ -70,10 +70,10 @@ def test_find_closest_with_max_dist():
     assert tree.find_closest((1, 1), 2, kdtree.L1()) is not None
     assert tree.find_closest((1, 1), 1, kdtree.L1()) is None
 
-    # L2 (Euclidian): dist((3, 4), (0, 0)) = 5
-    assert tree.find_closest((3, 4), 6, kdtree.L2()) is not None
-    assert tree.find_closest((3, 4), 5, kdtree.L2()) is not None
-    assert tree.find_closest((3, 4), 4, kdtree.L2()) is None
+    # L2sq (Squared Euclidian): dist((3, 4), (0, 0)) = 25
+    assert tree.find_closest((3, 4), 26, kdtree.L2sq()) is not None
+    assert tree.find_closest((3, 4), 25, kdtree.L2sq()) is not None
+    assert tree.find_closest((3, 4), 24, kdtree.L2sq()) is None
 
     # Linf (Chebyshev): dist((2, 2), (0, 0)) = max(2, 2) = 2
     assert tree.find_closest((2, 2), 3, kdtree.Linf()) is not None
@@ -102,7 +102,7 @@ def test_find_closest_k():
     assert ids == {1, 2, 3}
 
     # No results within limit
-    res = tree.find_closest_k((0.5, 0.5), 10, 0.1)
+    res = tree.find_closest_k((0.5, 0.5), 10, 0.1, kdtree.L2sq())
     assert len(res) == 0
 
 def test_norm_parameter():
@@ -190,7 +190,7 @@ def test_toroidal():
     """Test toroidal distance."""
     # Domain 100x100
     bounds = kdtree.Pointd(100, 100)
-    metric = kdtree.ToroidalL2(kdtree.L2(), bounds)
+    metric = kdtree.ToroidalL2(bounds)
     tree = kdtree.KDTreed()
 
     # Point at (1,1) and (99,99)
@@ -239,6 +239,23 @@ def test_find_all_within():
     found_linf = tree.find_all_within(query, radius, kdtree.Linf())
     expected_linf = [p for p, i in points if max(abs(p[0]), abs(p[1])) <= radius]
     assert len(found_linf) == len(expected_linf)
+
+def test_metric_enforcement():
+    """Test that metric is required when max_dist or radius is provided."""
+    tree = kdtree.KDTreed()
+    tree.insert((0, 0), 1)
+
+    # find_closest with max_dist but no metric
+    with pytest.raises(ValueError, match="Metric must be specified"):
+        tree.find_closest((0, 0), 10.0)
+
+    # find_closest_k with max_dist but no metric
+    with pytest.raises(ValueError, match="Metric must be specified"):
+        tree.find_closest_k((0, 0), 10, 10.0)
+
+    # find_all_within without metric
+    with pytest.raises(ValueError, match="Metric must be specified"):
+        tree.find_all_within((0, 0), 10.0)
 
 def test_great_circle():
     """Test Great Circle distance."""

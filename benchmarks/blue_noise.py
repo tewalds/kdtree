@@ -8,7 +8,7 @@ import kdtree
 
 def run_bench(n):
     bounds = kdtree.Pointd(1000, 1000)
-    metric = kdtree.ToroidalL2(kdtree.L2(), bounds)
+    metric = kdtree.ToroidalL2sq(bounds)
     tree = kdtree.KDTreed()
 
     def rand_p():

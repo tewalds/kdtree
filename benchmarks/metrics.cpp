@@ -15,32 +15,36 @@ void run_metric_bench(const KDTreed& tree, const std::vector<Pointd>& queries,
     // 1. find_closest
     auto start = std::chrono::high_resolution_clock::now();
     for (const auto& q : queries) {
-        tree.find_closest(q, std::numeric_limits<double>::max(), metric);
+        tree.find_closest(q, metric, -1.0);
     }
     auto end = std::chrono::high_resolution_clock::now();
     double ms = std::chrono::duration<double, std::milli>(end - start).count();
-    std::cout << "  {\"test\": \"Query: find_closest (" << metric_name << ")\", \"implementation\": \"C++\", \"n\": " << n << ", \"time_ms\": " << ms << ", \"iters\": " << num_queries << "},\n";
+    std::cout << "  {\"test\": \"Query: find_closest\", \"implementation\": \"C++ (" << metric_name << ")\", \"n\": " << n << ", \"time_ms\": " << ms << ", \"iters\": " << num_queries << "},\n";
 
     // 2. find_closest_k (k=5)
     start = std::chrono::high_resolution_clock::now();
     for (const auto& q : queries) {
-        tree.find_closest_k(q, 5, std::numeric_limits<double>::max(), metric);
+        tree.find_closest_k(q, 5, metric, -1.0);
     }
     end = std::chrono::high_resolution_clock::now();
     ms = std::chrono::duration<double, std::milli>(end - start).count();
-    std::cout << "  {\"test\": \"Query: find_closest_k=5 (" << metric_name << ")\", \"implementation\": \"C++\", \"n\": " << n << ", \"time_ms\": " << ms << ", \"iters\": " << num_queries << "},\n";
+    std::cout << "  {\"test\": \"Query: find_closest_k=5\", \"implementation\": \"C++ (" << metric_name << ")\", \"n\": " << n << ", \"time_ms\": " << ms << ", \"iters\": " << num_queries << "},\n";
 
     // 3. find_all_within
     double radius = 10.0;
-    if (metric_name == "GreatCircle") radius = 100000.0; // 100km
+    if (metric_name == "GreatCircle") {
+        radius = 100000.0; // 100km
+    } else if (metric_name.find("L2sq") != std::string::npos) {
+        radius = radius * radius;
+    }
 
     start = std::chrono::high_resolution_clock::now();
     for (const auto& q : queries) {
-        tree.find_all_within(q, radius, metric);
+        tree.find_all_within(q, metric, radius);
     }
     end = std::chrono::high_resolution_clock::now();
     ms = std::chrono::duration<double, std::milli>(end - start).count();
-    std::cout << "  {\"test\": \"Query: find_all_within (" << metric_name << ")\", \"implementation\": \"C++\", \"n\": " << n << ", \"time_ms\": " << ms << ", \"iters\": " << num_queries << "}";
+    std::cout << "  {\"test\": \"Query: find_all_within\", \"implementation\": \"C++ (" << metric_name << ")\", \"n\": " << n << ", \"time_ms\": " << ms << ", \"iters\": " << num_queries << "}";
 }
 
 int main() {
@@ -64,8 +68,12 @@ int main() {
 
         run_metric_bench(tree, queries, "L1", L1{}, n); std::cout << ",\n";
         run_metric_bench(tree, queries, "L2", L2{}, n); std::cout << ",\n";
+        run_metric_bench(tree, queries, "L2sq", L2sq{}, n); std::cout << ",\n";
         run_metric_bench(tree, queries, "Linf", Linf{}, n); std::cout << ",\n";
-        run_metric_bench(tree, queries, "ToroidalL2", Toroidal<L2>{L2{}, {1000, 1000}}, n); std::cout << ",\n";
+        run_metric_bench(tree, queries, "ToroidalL1", Toroidal<L1, double>{{1000, 1000}}, n); std::cout << ",\n";
+        run_metric_bench(tree, queries, "ToroidalL2", Toroidal<L2, double>{{1000, 1000}}, n); std::cout << ",\n";
+        run_metric_bench(tree, queries, "ToroidalL2sq", Toroidal<L2sq, double>{{1000, 1000}}, n); std::cout << ",\n";
+        run_metric_bench(tree, queries, "ToroidalLinf", Toroidal<Linf, double>{{1000, 1000}}, n); std::cout << ",\n";
         run_metric_bench(tree, queries, "GreatCircle", GreatCircle{6371000.0}, n);
 
         first_outer = false;

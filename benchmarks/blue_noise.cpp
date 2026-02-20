@@ -11,7 +11,7 @@ using namespace kdtree;
 
 void run_bench(int n, bool first) {
     Pointd bounds(1000.0, 1000.0);
-    Toroidal<L2> metric{L2{}, bounds};
+    Toroidal<L2sq, double> metric{bounds};
     KDTreed tree;
 
     std::mt19937_64 gen(42);
@@ -33,7 +33,7 @@ void run_bench(int n, bool first) {
         for (int j = 0; j < num_candidates; ++j) {
             Pointd p = rand_p();
             auto q_start = std::chrono::high_resolution_clock::now();
-            auto closest = tree.find_closest(p, std::numeric_limits<double>::max(), metric);
+            auto closest = tree.find_closest(p, metric, -1.0);
             auto q_end = std::chrono::high_resolution_clock::now();
 
             total_query_ms += std::chrono::duration<double, std::milli>(q_end - q_start).count();
