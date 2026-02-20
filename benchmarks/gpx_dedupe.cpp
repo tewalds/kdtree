@@ -53,7 +53,7 @@ int main() {
         KDTreed tree_dedupe;
         int kept = 0;
         for (const auto& p : points) {
-            if (!tree_dedupe.find_closest({p.lat, p.lon}, L2sq{}, thresholds[i].val * thresholds[i].val)) {
+            if (!tree_dedupe.find_closest(Pointd{p.lat, p.lon}, L2sq{}, thresholds[i].val * thresholds[i].val)) {
                 tree_dedupe.insert({p.lat, p.lon}, kept++);
             }
         }

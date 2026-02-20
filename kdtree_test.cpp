@@ -32,7 +32,7 @@ auto c_find(Container& c, const T& value) {
 }
 
 // Implement validate() for all template instantiations
-template<class PointType, class ValueType>
+template<IsPoint PointType, class ValueType>
 void KDTree<PointType, ValueType>::validate() const {
   auto min = std::numeric_limits<typename PointType::value_type>::lowest();
   auto max = std::numeric_limits<typename PointType::value_type>::max();
@@ -40,7 +40,7 @@ void KDTree<PointType, ValueType>::validate() const {
   REQUIRE(sum_depth == true_sum_depth);
 }
 
-template<class PointType, class ValueType>
+template<IsPoint PointType, class ValueType>
 int64_t KDTree<PointType, ValueType>::validate(const Node* node, int depth, PointType min, PointType max) const {
   if (!node) {
     return 0;
@@ -241,24 +241,24 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
     });
 
     // L1 (Manhattan): dist({1,1}, {0,0}) = 1+1 = 2
-    REQUIRE(tree.find_closest({1, 1}, L1{}, 3).has_value());
-    REQUIRE(tree.find_closest({1, 1}, L1{}, 2).has_value());
-    REQUIRE(!tree.find_closest({1, 1}, L1{}, 1).has_value());
+    REQUIRE(tree.find_closest(PointType{1, 1}, L1{}, 3).has_value());
+    REQUIRE(tree.find_closest(PointType{1, 1}, L1{}, 2).has_value());
+    REQUIRE(!tree.find_closest(PointType{1, 1}, L1{}, 1).has_value());
 
     // L2sq (Squared Euclidian): dist({3,4}, {0,0}) = 25
-    REQUIRE(tree.find_closest({3, 4}, L2sq{}, 26).has_value());
-    REQUIRE(tree.find_closest({3, 4}, L2sq{}, 25).has_value());
-    REQUIRE(!tree.find_closest({3, 4}, L2sq{}, 24).has_value());
+    REQUIRE(tree.find_closest(PointType{3, 4}, L2sq{}, 26).has_value());
+    REQUIRE(tree.find_closest(PointType{3, 4}, L2sq{}, 25).has_value());
+    REQUIRE(!tree.find_closest(PointType{3, 4}, L2sq{}, 24).has_value());
 
     // L2 (Euclidian): dist({3,4}, {0,0}) = 5
-    REQUIRE(tree.find_closest({3, 4}, L2{}, 6).has_value());
-    REQUIRE(tree.find_closest({3, 4}, L2{}, 5).has_value());
-    REQUIRE(!tree.find_closest({3, 4}, L2{}, 4).has_value());
+    REQUIRE(tree.find_closest(PointType{3, 4}, L2{}, 6).has_value());
+    REQUIRE(tree.find_closest(PointType{3, 4}, L2{}, 5).has_value());
+    REQUIRE(!tree.find_closest(PointType{3, 4}, L2{}, 4).has_value());
 
     // Linf (Chebyshev): dist({2,2}, {0,0}) = max(2,2) = 2
-    REQUIRE(tree.find_closest({2, 2}, Linf{}, 3).has_value());
-    REQUIRE(tree.find_closest({2, 2}, Linf{}, 2).has_value());
-    REQUIRE(!tree.find_closest({2, 2}, Linf{}, 1).has_value());
+    REQUIRE(tree.find_closest(PointType{2, 2}, Linf{}, 3).has_value());
+    REQUIRE(tree.find_closest(PointType{2, 2}, Linf{}, 2).has_value());
+    REQUIRE(!tree.find_closest(PointType{2, 2}, Linf{}, 1).has_value());
   }
 
   SECTION("find_closest_k works") {
@@ -269,21 +269,21 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
         {{10, 10}, 4}
     });
 
-    auto res = tree.find_closest_k({0, 0}, 2);
+    auto res = tree.find_closest_k(PointType{0, 0}, 2);
     REQUIRE(res.size() == 2);
     REQUIRE(res[0].value == 1);
 
     // Query near middle
-    auto res2 = tree.find_closest_k({1, 1}, 2);
+    auto res2 = tree.find_closest_k(PointType{1, 1}, 2);
     REQUIRE(res2.size() == 2);
 
     // With distance limit
     // L2sq dist: {0,0}->0, {1,1}->2, {2,2}->8. So only 2 points within sq_dist 4.
-    auto res_lim = tree.find_closest_k({0, 0}, 10, L2sq{}, 4);
+    auto res_lim = tree.find_closest_k(PointType{0, 0}, 10, L2sq{}, 4);
     REQUIRE(res_lim.size() == 2);
 
     // L1 dist: {0,0}->0, {1,1}->2, {2,2}->4. So 3 points within dist 4.
-    auto res_l1 = tree.find_closest_k({0, 0}, 10, L1{}, 4);
+    auto res_l1 = tree.find_closest_k(PointType{0, 0}, 10, L1{}, 4);
     REQUIRE(res_l1.size() == 3);
   }
 
