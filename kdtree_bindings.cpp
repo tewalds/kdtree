@@ -20,6 +20,15 @@ PointType to_point(py::handle obj) {
     if (py::isinstance<PointType>(obj)) {
         return obj.cast<PointType>();
     }
+    // Accept other point variants (e.g. passing Pointi to a Pointd tree)
+    if (py::isinstance<Pointi>(obj)) {
+        auto p = obj.cast<Pointi>();
+        return PointType(static_cast<T>(p.x), static_cast<T>(p.y));
+    }
+    if (py::isinstance<Pointd>(obj)) {
+        auto p = obj.cast<Pointd>();
+        return PointType(static_cast<T>(p.x), static_cast<T>(p.y));
+    }
 
     if (py::isinstance<py::tuple>(obj) || py::isinstance<py::list>(obj)) {
         auto seq = obj.cast<py::sequence>();
@@ -86,7 +95,7 @@ void bind_kdtree(py::module_& m, const std::string& name) {
     using Entry = typename Tree::Entry;
     using T = typename PointType::value_type;
 
-    auto tree_class = py::class_<Tree>(m, name.c_str())
+    py::class_<Tree>(m, name.c_str())
         .def(py::init<>())
         .def(py::init<const std::vector<Entry>&>())
         .def(py::init([](py::buffer coords, py::handle values) {
@@ -124,179 +133,51 @@ void bind_kdtree(py::module_& m, const std::string& name) {
         .def("size", &Tree::size)
         .def("clear", &Tree::clear)
 
-        .def("insert", static_cast<bool (Tree::*)(Entry)>(&Tree::insert), py::arg("entry"))
-        .def("insert", [](Tree& self, const PointType& p, ValueType val) {
-            return self.insert(p, val);
-        }, py::arg("point"), py::arg("value"))
         .def("insert", [](Tree& self, py::handle point_like, ValueType val) {
             return self.insert(to_point<PointType>(point_like), val);
         }, py::arg("point"), py::arg("value"))
-        .def("insert", [](Tree& self, T x, T y, ValueType val) {
-            return self.insert(PointType(x, y), val);
-        }, py::arg("x"), py::arg("y"), py::arg("value"))
-
-        .def("remove", static_cast<bool (Tree::*)(PointType)>(&Tree::remove), py::arg("point"))
         .def("remove", [](Tree& self, py::handle point_like) {
             return self.remove(to_point<PointType>(point_like));
         }, py::arg("point"))
-        .def("remove", [](Tree& self, T x, T y) {
-            return self.remove(PointType(x, y));
-        }, py::arg("x"), py::arg("y"))
-
-        .def("exists", static_cast<bool (Tree::*)(PointType) const>(&Tree::exists), py::arg("point"))
         .def("exists", [](const Tree& self, py::handle point_like) {
             return self.exists(to_point<PointType>(point_like));
         }, py::arg("point"))
-        .def("exists", [](const Tree& self, T x, T y) {
-            return self.exists(PointType(x, y));
-        }, py::arg("x"), py::arg("y"))
-
-        .def("find", static_cast<std::optional<Entry> (Tree::*)(PointType) const>(&Tree::find), py::arg("point"))
         .def("find", [](const Tree& self, py::handle point_like) {
             return self.find(to_point<PointType>(point_like));
         }, py::arg("point"))
-        .def("find", [](const Tree& self, T x, T y) {
-            return self.find(PointType(x, y));
-        }, py::arg("x"), py::arg("y"))
 
-        .def("find_closest", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::optional<Entry> {
-            PointType p;
-            double max_dist = -1.0;
-            py::handle metric_handle = py::none();
-
-            size_t n_args = args.size();
-            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
-
-            size_t next_idx = 0;
-            try {
-                p = to_point<PointType>(args[0]);
-                next_idx = 1;
-            } catch (...) {
-                if (n_args < 2) throw;
-                p = PointType(args[0].cast<T>(), args[1].cast<T>());
-                next_idx = 2;
-            }
-
-            for (size_t i = next_idx; i < n_args; ++i) {
-                if (py::isinstance<py::float_>(args[i]) || py::isinstance<py::int_>(args[i])) {
-                    max_dist = args[i].cast<double>();
-                } else {
-                    metric_handle = args[i];
-                }
-            }
-
-            if (kwargs.contains("max_dist")) max_dist = kwargs["max_dist"].cast<double>();
-            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
-
-            if (max_dist >= 0 && metric_handle.is_none())
+        .def("find_closest", [](const Tree& self, py::handle point_like, py::handle metric, py::handle max_dist) -> std::optional<Entry> {
+            double limit = max_dist.is_none() ? -1.0 : max_dist.cast<double>();
+            if (limit >= 0 && metric.is_none())
                 throw py::value_error("Metric must be specified when max_dist is provided");
-
-            return dispatch_metric(metric_handle, [&](const auto& m) {
-                return self.template find_closest(p, m, max_dist);
+            return dispatch_metric(metric, [&](const auto& m) -> std::optional<Entry> {
+                return self.template find_closest(to_point<PointType>(point_like), m, limit);
             });
-        })
+        }, py::arg("point"), py::arg("metric") = py::none(), py::arg("max_dist") = py::none())
 
-        .def("find_closest_k", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::vector<Entry> {
-            PointType p;
-            size_t k = 1;
-            double max_dist = -1.0;
-            py::handle metric_handle = py::none();
-
-            size_t n_args = args.size();
-            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
-
-            size_t next_idx = 0;
-            try {
-                p = to_point<PointType>(args[0]);
-                next_idx = 1;
-            } catch (...) {
-                if (n_args < 2) throw;
-                p = PointType(args[0].cast<T>(), args[1].cast<T>());
-                next_idx = 2;
-            }
-
-            if (next_idx < n_args) {
-                k = args[next_idx].cast<size_t>();
-                next_idx++;
-            }
-
-            for (size_t i = next_idx; i < n_args; ++i) {
-                if (py::isinstance<py::float_>(args[i]) || py::isinstance<py::int_>(args[i])) {
-                    max_dist = args[i].cast<double>();
-                } else {
-                    metric_handle = args[i];
-                }
-            }
-
-            if (kwargs.contains("k")) k = kwargs["k"].cast<size_t>();
-            if (kwargs.contains("max_dist")) max_dist = kwargs["max_dist"].cast<double>();
-            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
-
-            if (max_dist >= 0 && metric_handle.is_none())
+        .def("find_closest_k", [](const Tree& self, py::handle point_like, size_t k, py::handle metric, py::handle max_dist) -> std::vector<Entry> {
+            double limit = max_dist.is_none() ? -1.0 : max_dist.cast<double>();
+            if (limit >= 0 && metric.is_none())
                 throw py::value_error("Metric must be specified when max_dist is provided");
-
-            return dispatch_metric(metric_handle, [&](const auto& m) {
-                return self.template find_closest_k(p, k, m, max_dist);
+            return dispatch_metric(metric, [&](const auto& m) -> std::vector<Entry> {
+                return self.template find_closest_k(to_point<PointType>(point_like), k, m, limit);
             });
-        })
+        }, py::arg("point"), py::arg("k") = 1, py::arg("metric") = py::none(), py::arg("max_dist") = py::none())
 
-        .def("find_all_within", [](const Tree& self, py::args args, py::kwargs kwargs) -> std::vector<Entry> {
-            PointType p;
-            double radius = 0;
-            py::handle metric_handle = py::none();
-
-            size_t n_args = args.size();
-            if (n_args == 0) throw py::value_error("Point or x,y coordinates required");
-
-            size_t next_idx = 0;
-            try {
-                p = to_point<PointType>(args[0]);
-                next_idx = 1;
-            } catch (...) {
-                if (n_args < 2) throw;
-                p = PointType(args[0].cast<T>(), args[1].cast<T>());
-                next_idx = 2;
-            }
-
-            if (next_idx < n_args) {
-                radius = args[next_idx].cast<double>();
-                next_idx++;
-            }
-
-            if (next_idx < n_args) metric_handle = args[next_idx];
-            if (kwargs.contains("radius")) radius = kwargs["radius"].cast<double>();
-            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
-
-            if (metric_handle.is_none())
+        .def("find_all_within", [](const Tree& self, py::handle point_like, py::handle metric, double radius) -> std::vector<Entry> {
+            if (metric.is_none())
                 throw py::value_error("Metric must be specified for find_all_within");
-
-            return dispatch_metric(metric_handle, [&](const auto& m) {
-                return self.template find_all_within(p, m, radius);
+            return dispatch_metric(metric, [&](const auto& m) -> std::vector<Entry> {
+                return self.template find_all_within(to_point<PointType>(point_like), m, radius);
             });
-        })
+        }, py::arg("point"), py::arg("metric"), py::arg("radius"))
 
-        .def("pop_closest", [](Tree& self, py::args args, py::kwargs kwargs) -> Entry {
-            PointType p;
-            py::handle metric_handle = py::none();
-
-            size_t n_args = args.size();
-            size_t next_idx = 0;
-            try {
-                p = to_point<PointType>(args[0]);
-                next_idx = 1;
-            } catch (...) {
-                if (n_args < 2) throw;
-                p = PointType(args[0].cast<T>(), args[1].cast<T>());
-                next_idx = 2;
-            }
-
-            if (next_idx < n_args) metric_handle = args[next_idx];
-            if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
-
-            return dispatch_metric(metric_handle, [&](const auto& m) {
-                return self.template pop_closest(p, m);
+        .def("pop_closest", [](Tree& self, py::handle point_like, py::handle metric, py::handle max_dist) -> std::optional<Entry> {
+            double limit = max_dist.is_none() ? -1.0 : max_dist.cast<double>();
+            return dispatch_metric(metric, [&](const auto& m) -> std::optional<Entry> {
+                return self.template pop_closest(to_point<PointType>(point_like), m, limit);
             });
-        })
+        }, py::arg("point"), py::arg("metric") = py::none(), py::arg("max_dist") = py::none())
 
         .def("rebalance", &Tree::rebalance)
         .def("balance_str", &Tree::balance_str)
@@ -394,6 +275,7 @@ PYBIND11_MODULE(kdtree, m) {
 
     bind_kdtree<Pointi, int64_t>(m, "KDTreei");
     bind_kdtree<Pointd, int64_t>(m, "KDTreed");
+
     bind_kdtree<Pointi, py::object>(m, "KDTreePyi");
     bind_kdtree<Pointd, py::object>(m, "KDTreePyd");
 

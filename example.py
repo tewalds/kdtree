@@ -10,35 +10,35 @@ def basic():
     # Create tree with double coordinates, int64 values
     tree = kdtree.KDTreed()
 
-    # Insert using different convenience methods
+    # Insert using point-like objects (tuple, list, or explicit Point)
     tree.insert((1.5, 2.3), 1)           # tuple, value
     tree.insert([4.1, 3.7], 2)           # list, value
     tree.insert(kdtree.Pointd(0.8, 5.2), 3)  # explicit Point, value
-    tree.insert(3.0, 4.0, 4)             # separate coords, value
 
     print(f"Tree size: {len(tree)}")
     print(f"Stats: {tree.balance_str()}\n")
 
-    # Query using different methods
+    # Query using point-like objects
     print("Exists checks:")
     print(f"  (1.5, 2.3): {tree.exists((1.5, 2.3))}")
-    print(f"  (1.5, 2.3): {tree.exists(1.5, 2.3)}")
-    print(f"  (100, 100): {tree.exists(100, 100)}\n")
+    print(f"  (100, 100): {tree.exists((100, 100))}\n")
 
     # Find exact
-    result = tree.find(1.5, 2.3)
+    result = tree.find((1.5, 2.3))
     if result:
         print(f"Found: {result}\n")
 
-    # Find closest with different norms
+    # Find closest with different metrics
     query = (3.5, 4.5)
-    closest_l2 = tree.find_closest(query)  # default L2
-    closest_l1 = tree.find_closest(query, kdtree.Norm.L1)
-    closest_linf = tree.find_closest(query, kdtree.Norm.Linf)
+    closest_l2sq = tree.find_closest(query)  # default L2sq (Squared Euclidean)
+    closest_l2 = tree.find_closest(query, kdtree.L2())
+    closest_l1 = tree.find_closest(query, kdtree.L1())
+    closest_linf = tree.find_closest(query, kdtree.Linf())
 
     print(f"Closest to {query}:")
+    print(f"  L2sq (Squared): {closest_l2sq}")
     print(f"  L2 (Euclidean): {closest_l2}")
-    print(f"  L1 (Manhattan): {closest_l1}\n")
+    print(f"  L1 (Manhattan): {closest_l1}")
     print(f"  Linf (King):    {closest_linf}\n")
 
     # Iterate
@@ -61,7 +61,7 @@ def basic():
     print(f"  at position: {result.p}\n")
 
     # Remove and iterate
-    pytree.remove(3.0, 4.0)
+    pytree.remove((3.0, 4.0))
     print(f"After removing (3.0, 4.0), remaining objects:")
     for entry in pytree:
         print(f"  {entry.value} at {entry.p}")
@@ -74,15 +74,15 @@ def basic():
     # Create a grid of points
     for x in range(5):
         for y in range(5):
-            grid.insert(x, y, x * 5 + y)
+            grid.insert((x, y), x * 5 + y)
 
     center = (2, 2)
     print(f"Points nearest to {center} (Manhattan distance):")
     for _ in range(5):
         if grid.empty():
             break
-        nearest = grid.pop_closest(center, kdtree.Norm.L1)
-        dist = abs(nearest.p.x - center[0]) + abs(nearest.p.y - center[1])
+        nearest = grid.pop_closest(center, kdtree.L1())
+        dist = kdtree.L1().dist(nearest.p, center)
         print(f"  {nearest.p} (distance: {dist})")
 
 
@@ -101,11 +101,9 @@ def minesweeper_spatial_queue():
     print(f"Initial click: {last_revealed}")
 
     # Reveal creates new cells to check (neighbors)
-    # Priority based on distance from last revealed
     neighbors = [(4,5), (6,5), (5,4), (5,6), (4,4), (6,6), (4,6), (6,4)]
-    for x, y in neighbors:
-        # Insert with distance as "priority" - we'll use position for nearest query
-        to_reveal.insert(x, y, 0)  # 0 = priority, will be overridden by spatial distance
+    for p in neighbors:
+        to_reveal.insert(p, 0)
 
     print(f"Added {len(to_reveal)} neighbors to queue")
 
@@ -120,9 +118,6 @@ def minesweeper_spatial_queue():
         last_revealed = (next_cell.p.x, next_cell.p.y)
         revealed_order.append(last_revealed)
         iterations += 1
-
-        # In real minesweeper, we'd add more neighbors here if it's a 0
-        # For demo, just show the order
 
     print(f"Reveal order: {' -> '.join(str(p) for p in revealed_order)}")
     print(f"Natural flood-fill pattern from {revealed_order[0]} outward\n")
@@ -152,35 +147,29 @@ def gps_track_deduplication():
 
     # Deduplicate: only add if no point within threshold
     threshold_km = 0.1  # 100 meters
-    # Rough conversion: 1 degree ≈ 111km at equator
     threshold_degrees = threshold_km / 111.0
 
     deduplicated_track = []
 
     for i, (lat, lon) in enumerate(raw_track):
+        point = (lat, lon)
         if unique_points.empty():
-            # First point always added
             point_id = len(deduplicated_track)
-            unique_points.insert((lat, lon), {"id": point_id, "lat": lat, "lon": lon})
-            deduplicated_track.append((lat, lon))
+            unique_points.insert(point, {"id": point_id, "lat": lat, "lon": lon})
+            deduplicated_track.append(point)
             print(f"Point {i}: ({lat:.4f}, {lon:.4f}) - Added (first point)")
         else:
-            # Find closest existing point
-            closest = unique_points.find_closest((lat, lon))
-
-            # Calculate approximate distance (Euclidean in degrees)
-            dist_deg = ((closest.p.x - lat)**2 + (closest.p.y - lon)**2)**0.5
+            closest = unique_points.find_closest(point)
+            dist_deg = kdtree.L2().dist(closest.p, point)
             dist_km = dist_deg * 111.0
 
             if dist_deg < threshold_degrees:
-                # Too close to existing point, reuse it
                 reused_point = (closest.p.x, closest.p.y)
                 print(f"Point {i}: ({lat:.4f}, {lon:.4f}) - Reused {reused_point} ({dist_km:.1f}m away)")
             else:
-                # Far enough, add new point
                 point_id = len(deduplicated_track)
-                unique_points.insert((lat, lon), {"id": point_id, "lat": lat, "lon": lon})
-                deduplicated_track.append((lat, lon))
+                unique_points.insert(point, {"id": point_id, "lat": lat, "lon": lon})
+                deduplicated_track.append(point)
                 print(f"Point {i}: ({lat:.4f}, {lon:.4f}) - Added ({dist_km:.1f}km from nearest)")
 
     print(f"\nTrack simplified: {len(raw_track)} points → {len(deduplicated_track)} unique points")
@@ -205,11 +194,11 @@ def spatial_proximity_search():
     print(f"Query location: {query}")
 
     # L2 (Euclidean): Geometric distance
-    closest_l2 = cities.find_closest(query, kdtree.Norm.L2)
+    closest_l2 = cities.find_closest(query, kdtree.L2())
     print(f"Closest (L2/Euclidean): City {closest_l2.value} at {closest_l2.p}")
 
     # L1 (Manhattan): Grid/taxicab distance
-    closest_l1 = cities.find_closest(query, kdtree.Norm.L1)
+    closest_l1 = cities.find_closest(query, kdtree.L1())
     print(f"Closest (L1/Manhattan): City {closest_l1.value} at {closest_l1.p}")
 
     print("\nNote: Same tree, different distance metrics!")

@@ -18,7 +18,7 @@ def run_metric_bench(tree, queries, metric_name, metric, n):
     # 2. find_closest_k (k=5)
     start = time.perf_counter()
     for q in queries:
-        tree.find_closest_k(q, 5, metric=metric)
+        tree.find_closest_k(q, 5, metric)
     ms = (time.perf_counter() - start) * 1000
     results.append({"test": "Query: find_closest_k=5", "implementation": f"Python ({metric_name})", "n": n, "time_ms": ms, "iters": num_queries})
 
@@ -31,7 +31,7 @@ def run_metric_bench(tree, queries, metric_name, metric, n):
 
     start = time.perf_counter()
     for q in queries:
-        tree.find_all_within(q, radius, metric=metric)
+        tree.find_all_within(q, metric, radius)
     ms = (time.perf_counter() - start) * 1000
     results.append({"test": "Query: find_all_within", "implementation": f"Python ({metric_name})", "n": n, "time_ms": ms, "iters": num_queries})
 
