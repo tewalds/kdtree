@@ -257,6 +257,29 @@ def test_metric_enforcement():
     with pytest.raises(ValueError, match="Metric must be specified"):
         tree.find_all_within((0, 0), 10.0)
 
+def test_metric_dist():
+    """Test the dist() method on metric objects."""
+    p1 = (0, 0)
+    p2 = (3, 4)
+
+    assert kdtree.L1().dist(p1, p2) == 7.0
+    assert kdtree.L2().dist(p1, p2) == 5.0
+    assert kdtree.L2sq().dist(p1, p2) == 25.0
+    assert kdtree.Linf().dist(p1, p2) == 4.0
+
+    # Toroidal
+    bounds = kdtree.Pointd(10, 10)
+    # (0,0) to (9,9) is (1,1) across boundary
+    assert kdtree.ToroidalL2(bounds).dist((0, 0), (9, 9)) == pytest.approx(2**0.5)
+    assert kdtree.ToroidalL2sq(bounds).dist((0, 0), (9, 9)) == pytest.approx(2.0)
+
+    # Great Circle
+    # SF to LA is ~559km
+    sf = (37.7749, -122.4194)
+    la = (34.0522, -118.2437)
+    d = kdtree.GreatCircle().dist(sf, la)
+    assert 550000 < d < 570000
+
 def test_great_circle():
     """Test Great Circle distance."""
     # San Francisco and Los Angeles
