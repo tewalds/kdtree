@@ -168,23 +168,23 @@ void bind_kdtree(py::module_& m, const std::string& name) {
                 throw py::value_error("Metric must be specified when max_dist is provided");
 
             if (metric_handle.is_none() || py::isinstance<L2sq>(metric_handle))
-                return self.template find_closest<PointType, L2sq>(p, metric_handle.is_none() ? L2sq{} : metric_handle.cast<L2sq>(), max_dist);
+                return self.template find_closest(p, metric_handle.is_none() ? L2sq{} : metric_handle.cast<L2sq>(), max_dist);
             if (py::isinstance<L1>(metric_handle))
-                return self.template find_closest<PointType, L1>(p, metric_handle.cast<L1>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<L1>(), max_dist);
             if (py::isinstance<L2>(metric_handle))
-                return self.template find_closest<PointType, L2>(p, metric_handle.cast<L2>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<L2>(), max_dist);
             if (py::isinstance<Linf>(metric_handle))
-                return self.template find_closest<PointType, Linf>(p, metric_handle.cast<Linf>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<Linf>(), max_dist);
             if (py::isinstance<Toroidal<L1, double>>(metric_handle))
-                return self.template find_closest<PointType, Toroidal<L1, double>>(p, metric_handle.cast<Toroidal<L1, double>>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<Toroidal<L1, double>>(), max_dist);
             if (py::isinstance<Toroidal<L2, double>>(metric_handle))
-                return self.template find_closest<PointType, Toroidal<L2, double>>(p, metric_handle.cast<Toroidal<L2, double>>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<Toroidal<L2, double>>(), max_dist);
             if (py::isinstance<Toroidal<L2sq, double>>(metric_handle))
-                return self.template find_closest<PointType, Toroidal<L2sq, double>>(p, metric_handle.cast<Toroidal<L2sq, double>>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<Toroidal<L2sq, double>>(), max_dist);
             if (py::isinstance<Toroidal<Linf, double>>(metric_handle))
-                return self.template find_closest<PointType, Toroidal<Linf, double>>(p, metric_handle.cast<Toroidal<Linf, double>>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<Toroidal<Linf, double>>(), max_dist);
             if (py::isinstance<GreatCircle>(metric_handle))
-                return self.template find_closest<PointType, GreatCircle>(p, metric_handle.cast<GreatCircle>(), max_dist);
+                return self.template find_closest(p, metric_handle.cast<GreatCircle>(), max_dist);
 
             throw py::type_error("Unsupported metric type");
         })
@@ -230,23 +230,23 @@ void bind_kdtree(py::module_& m, const std::string& name) {
                 throw py::value_error("Metric must be specified when max_dist is provided");
 
             if (metric_handle.is_none() || py::isinstance<L2sq>(metric_handle))
-                return self.template find_closest_k<PointType, L2sq>(p, k, metric_handle.is_none() ? L2sq{} : metric_handle.cast<L2sq>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.is_none() ? L2sq{} : metric_handle.cast<L2sq>(), max_dist);
             if (py::isinstance<L1>(metric_handle))
-                return self.template find_closest_k<PointType, L1>(p, k, metric_handle.cast<L1>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<L1>(), max_dist);
             if (py::isinstance<L2>(metric_handle))
-                return self.template find_closest_k<PointType, L2>(p, k, metric_handle.cast<L2>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<L2>(), max_dist);
             if (py::isinstance<Linf>(metric_handle))
-                return self.template find_closest_k<PointType, Linf>(p, k, metric_handle.cast<Linf>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<Linf>(), max_dist);
             if (py::isinstance<Toroidal<L1, double>>(metric_handle))
-                return self.template find_closest_k<PointType, Toroidal<L1, double>>(p, k, metric_handle.cast<Toroidal<L1, double>>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<Toroidal<L1, double>>(), max_dist);
             if (py::isinstance<Toroidal<L2, double>>(metric_handle))
-                return self.template find_closest_k<PointType, Toroidal<L2, double>>(p, k, metric_handle.cast<Toroidal<L2, double>>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<Toroidal<L2, double>>(), max_dist);
             if (py::isinstance<Toroidal<L2sq, double>>(metric_handle))
-                return self.template find_closest_k<PointType, Toroidal<L2sq, double>>(p, k, metric_handle.cast<Toroidal<L2sq, double>>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<Toroidal<L2sq, double>>(), max_dist);
             if (py::isinstance<Toroidal<Linf, double>>(metric_handle))
-                return self.template find_closest_k<PointType, Toroidal<Linf, double>>(p, k, metric_handle.cast<Toroidal<Linf, double>>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<Toroidal<Linf, double>>(), max_dist);
             if (py::isinstance<GreatCircle>(metric_handle))
-                return self.template find_closest_k<PointType, GreatCircle>(p, k, metric_handle.cast<GreatCircle>(), max_dist);
+                return self.template find_closest_k(p, k, metric_handle.cast<GreatCircle>(), max_dist);
 
             throw py::type_error("Unsupported metric type");
         })
@@ -283,23 +283,23 @@ void bind_kdtree(py::module_& m, const std::string& name) {
                 throw py::value_error("Metric must be specified for find_all_within");
 
             if (py::isinstance<L1>(metric_handle))
-                return self.template find_all_within<PointType, L1>(p, metric_handle.cast<L1>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<L1>(), radius);
             if (py::isinstance<L2>(metric_handle))
-                return self.template find_all_within<PointType, L2>(p, metric_handle.cast<L2>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<L2>(), radius);
             if (py::isinstance<L2sq>(metric_handle))
-                return self.template find_all_within<PointType, L2sq>(p, metric_handle.cast<L2sq>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<L2sq>(), radius);
             if (py::isinstance<Linf>(metric_handle))
-                return self.template find_all_within<PointType, Linf>(p, metric_handle.cast<Linf>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<Linf>(), radius);
             if (py::isinstance<Toroidal<L1, double>>(metric_handle))
-                return self.template find_all_within<PointType, Toroidal<L1, double>>(p, metric_handle.cast<Toroidal<L1, double>>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<Toroidal<L1, double>>(), radius);
             if (py::isinstance<Toroidal<L2, double>>(metric_handle))
-                return self.template find_all_within<PointType, Toroidal<L2, double>>(p, metric_handle.cast<Toroidal<L2, double>>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<Toroidal<L2, double>>(), radius);
             if (py::isinstance<Toroidal<L2sq, double>>(metric_handle))
-                return self.template find_all_within<PointType, Toroidal<L2sq, double>>(p, metric_handle.cast<Toroidal<L2sq, double>>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<Toroidal<L2sq, double>>(), radius);
             if (py::isinstance<Toroidal<Linf, double>>(metric_handle))
-                return self.template find_all_within<PointType, Toroidal<Linf, double>>(p, metric_handle.cast<Toroidal<Linf, double>>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<Toroidal<Linf, double>>(), radius);
             if (py::isinstance<GreatCircle>(metric_handle))
-                return self.template find_all_within<PointType, GreatCircle>(p, metric_handle.cast<GreatCircle>(), radius);
+                return self.template find_all_within(p, metric_handle.cast<GreatCircle>(), radius);
 
             throw py::type_error("Unsupported metric type");
         })
@@ -324,23 +324,23 @@ void bind_kdtree(py::module_& m, const std::string& name) {
             if (kwargs.contains("metric")) metric_handle = kwargs["metric"];
 
             if (metric_handle.is_none() || py::isinstance<L2sq>(metric_handle))
-                return self.template pop_closest<PointType, L2sq>(p, metric_handle.is_none() ? L2sq{} : metric_handle.cast<L2sq>());
+                return self.template pop_closest(p, metric_handle.is_none() ? L2sq{} : metric_handle.cast<L2sq>());
             if (py::isinstance<L2>(metric_handle))
-                return self.template pop_closest<PointType, L2>(p, metric_handle.cast<L2>());
+                return self.template pop_closest(p, metric_handle.cast<L2>());
             if (py::isinstance<L1>(metric_handle))
-                return self.template pop_closest<PointType, L1>(p, metric_handle.cast<L1>());
+                return self.template pop_closest(p, metric_handle.cast<L1>());
             if (py::isinstance<Linf>(metric_handle))
-                return self.template pop_closest<PointType, Linf>(p, metric_handle.cast<Linf>());
+                return self.template pop_closest(p, metric_handle.cast<Linf>());
             if (py::isinstance<Toroidal<L1, double>>(metric_handle))
-                return self.template pop_closest<PointType, Toroidal<L1, double>>(p, metric_handle.cast<Toroidal<L1, double>>());
+                return self.template pop_closest(p, metric_handle.cast<Toroidal<L1, double>>());
             if (py::isinstance<Toroidal<L2, double>>(metric_handle))
-                return self.template pop_closest<PointType, Toroidal<L2, double>>(p, metric_handle.cast<Toroidal<L2, double>>());
+                return self.template pop_closest(p, metric_handle.cast<Toroidal<L2, double>>());
             if (py::isinstance<Toroidal<L2sq, double>>(metric_handle))
-                return self.template pop_closest<PointType, Toroidal<L2sq, double>>(p, metric_handle.cast<Toroidal<L2sq, double>>());
+                return self.template pop_closest(p, metric_handle.cast<Toroidal<L2sq, double>>());
             if (py::isinstance<Toroidal<Linf, double>>(metric_handle))
-                return self.template pop_closest<PointType, Toroidal<Linf, double>>(p, metric_handle.cast<Toroidal<Linf, double>>());
+                return self.template pop_closest(p, metric_handle.cast<Toroidal<Linf, double>>());
             if (py::isinstance<GreatCircle>(metric_handle))
-                return self.template pop_closest<PointType, GreatCircle>(p, metric_handle.cast<GreatCircle>());
+                return self.template pop_closest(p, metric_handle.cast<GreatCircle>());
 
             throw py::type_error("Unsupported metric type");
         })

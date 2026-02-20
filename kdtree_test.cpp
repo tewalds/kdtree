@@ -168,8 +168,8 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
   SECTION("Finding a known value returns that value") {
     for (const Entry& e : entries) {
       REQUIRE(tree.find_closest(e.p, L1{}) == e);
-      REQUIRE(tree.find_closest(e.p, L2sq{}) == e);
       REQUIRE(tree.find_closest(e.p, L2{}) == e);
+      REQUIRE(tree.find_closest(e.p, L2sq{}) == e);
       REQUIRE(tree.find_closest(e.p, Linf{}) == e);
     }
   }
@@ -184,10 +184,10 @@ TEMPLATE_TEST_CASE("KDTree", "[kdtree]",
         {{-11, -11}, 5},
     });
 
-    REQUIRE(norm_tree.find_closest({0, 0}, L1{}).value == 1);
-    REQUIRE(norm_tree.find_closest({0, 0}, L2{}).value == 2);
-    REQUIRE(norm_tree.find_closest({0, 0}, L2sq{}).value == 2);
-    REQUIRE(norm_tree.find_closest({0, 0}, Linf{}).value == 3);
+    REQUIRE(norm_tree.find_closest(PointType{0, 0}, L1{}).value == 1);
+    REQUIRE(norm_tree.find_closest(PointType{0, 0}, L2{}).value == 2);
+    REQUIRE(norm_tree.find_closest(PointType{0, 0}, L2sq{}).value == 2);
+    REQUIRE(norm_tree.find_closest(PointType{0, 0}, Linf{}).value == 3);
   }
 
   SECTION("Remove works") {

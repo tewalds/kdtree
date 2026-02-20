@@ -86,48 +86,40 @@ struct Entry {
 };
 
 struct L1 {
-  template <IsPoint T, IsPoint U>
-  auto dist(const T& a, const U& b) const {
+  auto dist(const IsPoint auto& a, const IsPoint auto& b) const {
     return std::abs(a.x - b.x) + std::abs(a.y - b.y);
   }
-  template <IsPoint T, IsPoint U>
-  auto axis_dist(const T& a, const U& b, int axis) const {
+  auto axis_dist(const IsPoint auto& a, const IsPoint auto& b, int axis) const {
     return std::abs(a.coords[axis] - b.coords[axis]);
   }
 };
 
 struct L2 {
-  template <IsPoint T, IsPoint U>
-  double dist(const T& a, const U& b) const {
+  double dist(const IsPoint auto& a, const IsPoint auto& b) const {
     return std::hypot(static_cast<double>(a.x) - b.x, static_cast<double>(a.y) - b.y);
   }
-  template <IsPoint T, IsPoint U>
-  double axis_dist(const T& a, const U& b, int axis) const {
+  double axis_dist(const IsPoint auto& a, const IsPoint auto& b, int axis) const {
     return std::abs(static_cast<double>(a.coords[axis]) - b.coords[axis]);
   }
 };
+
 struct L2sq {
-  template <IsPoint T, IsPoint U>
-  auto dist(const T& a, const U& b) const {
+  auto dist(const IsPoint auto& a, const IsPoint auto& b) const {
     auto dx = a.x - b.x;
     auto dy = a.y - b.y;
     return dx * dx + dy * dy;
   }
-  template <IsPoint T, IsPoint U>
-  auto axis_dist(const T& a, const U& b, int axis) const {
+  auto axis_dist(const IsPoint auto& a, const IsPoint auto& b, int axis) const {
     auto d = a.coords[axis] - b.coords[axis];
     return d * d;
   }
 };
 
-
 struct Linf {
-  template <IsPoint T, IsPoint U>
-  auto dist(const T& a, const U& b) const {
+  auto dist(const IsPoint auto& a, const IsPoint auto& b) const {
     return std::max(std::abs(a.x - b.x), std::abs(a.y - b.y));
   }
-  template <IsPoint T, IsPoint U>
-  auto axis_dist(const T& a, const U& b, int axis) const {
+  auto axis_dist(const IsPoint auto& a, const IsPoint auto& b, int axis) const {
     return std::abs(a.coords[axis] - b.coords[axis]);
   }
 };
@@ -139,8 +131,7 @@ struct Toroidal {
 
   Toroidal(Point<T> b) : bounds(b), base() {}
 
-  template <IsPoint U, IsPoint V>
-  auto dist(const U& a, const V& b) const {
+  auto dist(const IsPoint auto& a, const IsPoint auto& b) const {
     auto dx = std::abs(a.x - b.x);
     auto dy = std::abs(a.y - b.y);
     dx = std::min(dx, static_cast<decltype(dx)>(bounds.x) - dx);
@@ -148,8 +139,7 @@ struct Toroidal {
     return base.dist(Point<decltype(dx)>(0, 0), Point<decltype(dx)>(dx, dy));
   }
 
-  template <IsPoint U, IsPoint V>
-  auto axis_dist(const U& a, const V& b, int axis) const {
+  auto axis_dist(const IsPoint auto& a, const IsPoint auto& b, int axis) const {
     auto d = std::abs(a.coords[axis] - b.coords[axis]);
     auto bd = static_cast<decltype(d)>(bounds.coords[axis]);
     auto dist = std::min(d, bd - d);
@@ -162,8 +152,7 @@ struct Toroidal {
 struct GreatCircle {
   double radius = 6371000.0; // Earth radius in meters
 
-  template <IsPoint T, IsPoint U>
-  double dist(const T& a, const U& b) const {
+  double dist(const IsPoint auto& a, const IsPoint auto& b) const {
     const double PI = 3.14159265358979323846;
     double lat1 = static_cast<double>(a.x) * PI / 180.0;
     double lat2 = static_cast<double>(b.x) * PI / 180.0;
@@ -176,8 +165,7 @@ struct GreatCircle {
     return 2.0 * radius * std::asin(std::sqrt(x));
   }
 
-  template <IsPoint T, IsPoint U>
-  double axis_dist(const T& a, const U& b, int axis) const {
+  double axis_dist(const IsPoint auto& a, const IsPoint auto& b, int axis) const {
     const double PI = 3.14159265358979323846;
     if (axis == 0) return static_cast<double>(std::abs(a.x - b.x)) * (PI * radius / 180.0);
     return 0.0; // Disable pruning on longitude for absolute correctness in this simple version
@@ -302,16 +290,17 @@ class KDTree {
     return {};
   }
 
-  template <IsPoint QueryPoint = PointType, typename Metric = L2sq>
-    requires IsMetric<Metric, QueryPoint, PointType>
-  Entry find_closest(const QueryPoint& p, const Metric& metric = Metric{}) const {
+  template <typename Metric = L2sq>
+    requires IsMetric<Metric, PointType, PointType>
+  Entry find_closest(const IsPoint auto& p, const Metric& metric = Metric{}) const {
     assert(root != nullptr);
     return *find_closest(p, metric, -1);
   }
 
-  template <IsPoint QueryPoint, typename Metric>
-    requires IsMetric<Metric, QueryPoint, PointType>
-  std::optional<Entry> find_closest(const QueryPoint& p, const Metric& metric, double max_dist) const {
+  template <typename Metric>
+  std::optional<Entry> find_closest(const IsPoint auto& p, const Metric& metric, double max_dist) const
+    requires IsMetric<Metric, decltype(p), PointType>
+  {
     if (!root) {
       return std::nullopt;
     }
@@ -321,7 +310,7 @@ class KDTree {
     DistanceType best_dist = (max_dist < 0 ? std::numeric_limits<DistanceType>::max()
                                            : static_cast<DistanceType>(max_dist));
 
-    find_closest_impl<Metric, QueryPoint, DistanceType>(root.get(), p, best_dist, best_node, metric);
+    find_closest_impl<Metric>(root.get(), p, best_dist, best_node, metric);
 
     if (best_node) {
       return best_node->entry;
@@ -329,9 +318,10 @@ class KDTree {
     return std::nullopt;
   }
 
-  template <IsPoint QueryPoint = PointType, typename Metric = L2sq>
-    requires IsMetric<Metric, QueryPoint, PointType>
-  std::vector<Entry> find_closest_k(const QueryPoint& p, size_t k, const Metric& metric = Metric{}, double max_dist = -1.0) const {
+  template <typename Metric = L2sq>
+  std::vector<Entry> find_closest_k(const IsPoint auto& p, size_t k, const Metric& metric = Metric{}, double max_dist = -1.0) const
+    requires IsMetric<Metric, decltype(p), PointType>
+  {
     if (!root || k == 0) {
       return {};
     }
@@ -341,7 +331,7 @@ class KDTree {
     DistanceType best_dist = (max_dist < 0 ? std::numeric_limits<DistanceType>::max()
                                            : static_cast<DistanceType>(max_dist));
 
-    find_closest_k_impl<Metric, QueryPoint, DistanceType>(root.get(), p, k, best_dist, pq, metric);
+    find_closest_k_impl<Metric>(root.get(), p, k, best_dist, pq, metric);
 
     std::vector<Entry> results;
     results.reserve(pq.size());
@@ -353,29 +343,32 @@ class KDTree {
     return results;
   }
 
-  template <IsPoint QueryPoint, typename Metric>
-    requires IsMetric<Metric, QueryPoint, PointType>
-  std::vector<Entry> find_all_within(const QueryPoint& p, const Metric& metric, double radius) const {
+  template <typename Metric>
+  std::vector<Entry> find_all_within(const IsPoint auto& p, const Metric& metric, double radius) const
+    requires IsMetric<Metric, decltype(p), PointType>
+  {
     if (!root) {
       return {};
     }
     std::vector<Entry> results;
     using DistanceType = decltype(metric.dist(p, root->entry.p));
-    find_all_within_impl<Metric, QueryPoint, DistanceType>(root.get(), p, static_cast<DistanceType>(radius), results, metric);
+    find_all_within_impl<Metric>(root.get(), p, static_cast<DistanceType>(radius), results, metric);
     return results;
   }
 
 
-  template <IsPoint QueryPoint = PointType, typename Metric = L2sq>
-    requires IsMetric<Metric, QueryPoint, PointType>
-  Entry pop_closest(const QueryPoint& p, const Metric& metric = Metric{}) {
+  template <typename Metric = L2sq>
+  Entry pop_closest(const IsPoint auto& p, const Metric& metric = Metric{})
+    requires IsMetric<Metric, decltype(p), PointType>
+  {
     assert(root != nullptr);
     return *pop_closest(p, metric, -1);
   }
 
-  template <IsPoint QueryPoint, typename Metric>
-    requires IsMetric<Metric, QueryPoint, PointType>
-  std::optional<Entry> pop_closest(const QueryPoint& p, const Metric& metric, double max_dist) {
+  template <typename Metric>
+  std::optional<Entry> pop_closest(const IsPoint auto& p, const Metric& metric, double max_dist)
+    requires IsMetric<Metric, decltype(p), PointType>
+  {
     if (!root) {
       return std::nullopt;
     }
@@ -386,7 +379,7 @@ class KDTree {
     DistanceType best_dist = (max_dist < 0 ? std::numeric_limits<DistanceType>::max()
                                            : static_cast<DistanceType>(max_dist));
 
-    find_closest_impl<Metric, QueryPoint, DistanceType>(root.get(), p, best_dist, best_node, metric);
+    find_closest_impl<Metric>(root.get(), p, best_dist, best_node, metric);
 
     if (best_node) {
       Entry out = best_node->entry;
@@ -501,9 +494,9 @@ class KDTree {
   }
 
   // Const version for find_closest
-  template <typename Metric, IsPoint QueryPoint, typename DistanceType>
+  template <typename Metric, typename DistanceType>
   void find_closest_impl(
-      const Node* node, const QueryPoint& p,
+      const Node* node, const IsPoint auto& p,
       DistanceType& best_dist,
       const Node*& best_node,
       const Metric& metric) const {
@@ -519,18 +512,18 @@ class KDTree {
 
     int axis = node->depth % 2;
     int search_first = (p.coords[axis] < node->entry.p.coords[axis]) ? 0 : 1;
-    find_closest_impl<Metric, QueryPoint, DistanceType>(node->children[search_first].get(), p, best_dist, best_node, metric);
+    find_closest_impl<Metric>(node->children[search_first].get(), p, best_dist, best_node, metric);
 
     auto ad = metric.axis_dist(p, node->entry.p, axis);
     if (ad <= best_dist) {
-      find_closest_impl<Metric, QueryPoint, DistanceType>(node->children[!search_first].get(), p, best_dist, best_node, metric);
+      find_closest_impl<Metric>(node->children[!search_first].get(), p, best_dist, best_node, metric);
     }
   }
 
   // Mutable version for pop_closest
-  template <typename Metric, IsPoint QueryPoint, typename DistanceType>
+  template <typename Metric, typename DistanceType>
   void find_closest_impl_mutable(
-      std::unique_ptr<Node>* node, const QueryPoint& p,
+      std::unique_ptr<Node>* node, const IsPoint auto& p,
       DistanceType& best_dist,
       std::unique_ptr<Node>*& best_node,
       const Metric& metric) {
@@ -546,17 +539,17 @@ class KDTree {
 
     int axis = (*node)->depth % 2;
     int search_first = (p.coords[axis] < (*node)->entry.p.coords[axis]) ? 0 : 1;
-    find_closest_impl_mutable<Metric, QueryPoint, DistanceType>(&(*node)->children[search_first], p, best_dist, best_node, metric);
+    find_closest_impl_mutable<Metric>(&(*node)->children[search_first], p, best_dist, best_node, metric);
 
     auto ad = metric.axis_dist(p, (*node)->entry.p, axis);
     if (ad <= best_dist) {
-      find_closest_impl_mutable<Metric, QueryPoint, DistanceType>(&(*node)->children[!search_first], p, best_dist, best_node, metric);
+      find_closest_impl_mutable<Metric>(&(*node)->children[!search_first], p, best_dist, best_node, metric);
     }
   }
 
-  template <typename Metric, IsPoint QueryPoint, typename DistanceType>
+  template <typename Metric, typename DistanceType>
   void find_closest_k_impl(
-      const Node* node, const QueryPoint& p, size_t k,
+      const Node* node, const IsPoint auto& p, size_t k,
       DistanceType& best_dist,
       std::priority_queue<std::pair<DistanceType, const Node*>>& pq,
       const Metric& metric) const {
@@ -577,17 +570,17 @@ class KDTree {
 
     int axis = node->depth % 2;
     int search_first = (p.coords[axis] < node->entry.p.coords[axis]) ? 0 : 1;
-    find_closest_k_impl<Metric, QueryPoint, DistanceType>(node->children[search_first].get(), p, k, best_dist, pq, metric);
+    find_closest_k_impl<Metric>(node->children[search_first].get(), p, k, best_dist, pq, metric);
 
     auto ad = metric.axis_dist(p, node->entry.p, axis);
     if (ad <= best_dist) {
-      find_closest_k_impl<Metric, QueryPoint, DistanceType>(node->children[!search_first].get(), p, k, best_dist, pq, metric);
+      find_closest_k_impl<Metric>(node->children[!search_first].get(), p, k, best_dist, pq, metric);
     }
   }
 
-  template <typename Metric, IsPoint QueryPoint, typename DistanceType>
+  template <typename Metric, typename DistanceType>
   void find_all_within_impl(
-      const Node* node, const QueryPoint& p,
+      const Node* node, const IsPoint auto& p,
       DistanceType radius,
       std::vector<Entry>& results,
       const Metric& metric) const {
@@ -601,11 +594,11 @@ class KDTree {
 
     int axis = node->depth % 2;
     int search_first = (p.coords[axis] < node->entry.p.coords[axis]) ? 0 : 1;
-    find_all_within_impl<Metric, QueryPoint, DistanceType>(node->children[search_first].get(), p, radius, results, metric);
+    find_all_within_impl<Metric>(node->children[search_first].get(), p, radius, results, metric);
 
     auto ad = metric.axis_dist(p, node->entry.p, axis);
     if (ad <= radius) {
-      find_all_within_impl<Metric, QueryPoint, DistanceType>(node->children[!search_first].get(), p, radius, results, metric);
+      find_all_within_impl<Metric>(node->children[!search_first].get(), p, radius, results, metric);
     }
   }
 
