@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-import subprocess
+
+from collections import defaultdict
 import json
 import os
-import sys
 import re
+import subprocess
+import sys
 
-BASELINE_FILE = "bench_results.json"
+import matplotlib.pyplot as plt
+
+RESULTS_FILE = "bench_results.json"
+PLOTS_DIR = "plots"
 
 def strip_ansi(text):
     return re.sub(r'\033\[[0-9;]*m', '', text)
@@ -44,26 +49,7 @@ def run_bench(path):
         print(f"Failed to parse JSON from {path}")
         return []
 
-def main():
-    update_baseline = "--update" in sys.argv
-    bench_dir = "benchmarks"
-
-    files = [os.path.join(bench_dir, f) for f in os.listdir(bench_dir)
-             if f.endswith(".py") or f.endswith(".cpp")]
-    files.sort()
-
-    all_results = []
-    for f in files:
-        all_results.extend(run_bench(f))
-
-    # Sort results by Test, then Impl, then N
-    all_results.sort(key=lambda x: (x["test"], x["implementation"], x["n"]))
-
-    baseline = []
-    if os.path.exists(BASELINE_FILE):
-        with open(BASELINE_FILE, "r") as f:
-            baseline = json.load(f)
-
+def print_results(all_results, baseline):
     def find_base(test, impl, n):
         for b in baseline:
             if b["test"] == test and b["implementation"] == impl and b["n"] == n:
@@ -97,10 +83,75 @@ def main():
         row = f"| {format_cell(test, test_w, 'left')} | {format_cell(impl, impl_w, 'left')} | {n:10} | {time_ms:10.2f} | {format_cell(diff_str, 8)} | {format_cell(str(iters), 10)} |"
         print(row)
 
+def plot_results(all_results):
+    if not os.path.exists(PLOTS_DIR):
+        os.makedirs(PLOTS_DIR)
+
+    # Group data by test
+    tests = defaultdict(lambda: defaultdict(list))
+    for entry in all_results:
+        test_name = entry["test"]
+        impl = entry["implementation"]
+        n = entry["n"]
+        time = entry["time_ms"]
+        tests[test_name][impl].append((n, time))
+
+    print(f"Generating {len(tests)} plots in {PLOTS_DIR}/...")
+
+    for test_name, impls in sorted(tests.items()):
+        plt.figure(figsize=(10, 6))
+
+        for impl, points in impls.items():
+            # Sort by N for plotting
+            points.sort()
+            ns = [p[0] for p in points]
+            times = [p[1] for p in points]
+            plt.plot(ns, times, marker='o', label=impl)
+
+        plt.title(f"Scaling: {test_name}")
+        plt.xlabel("N (Number of points)")
+        plt.ylabel("Time (ms)")
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.grid(True, which="both", ls="-", alpha=0.5)
+        plt.legend()
+
+        safe_name = test_name.replace(':', '').replace(' ', '_').replace('(', '').replace(')', '').lower()
+        filename = os.path.join(PLOTS_DIR, f"bench_{safe_name}.png")
+        plt.savefig(filename)
+        plt.close() # Free memory
+        print(f"  - {test_name}")
+
+    print("\nDone.")
+
+def main():
+    update_baseline = "--update" in sys.argv
+    bench_dir = "benchmarks"
+
+    files = [os.path.join(bench_dir, f) for f in os.listdir(bench_dir)
+             if f.endswith(".py") or f.endswith(".cpp")]
+    files.sort()
+
+    all_results = []
+    for f in files:
+        all_results.extend(run_bench(f))
+
+    # Sort results by Test, then Impl, then N
+    all_results.sort(key=lambda x: (x["test"], x["implementation"], x["n"]))
+
+    baseline = []
+    if os.path.exists(RESULTS_FILE):
+        with open(RESULTS_FILE, "r") as f:
+            baseline = json.load(f)
+
+    print_results(all_results, baseline)
+
     if update_baseline:
-        with open(BASELINE_FILE, "w") as f:
+        with open(RESULTS_FILE, "w") as f:
             json.dump(all_results, f, indent=2)
-        print(f"\nBaseline updated in {BASELINE_FILE}")
+        print(f"\nBaseline updated in {RESULTS_FILE}")
+
+    plot_results(all_results)
 
 if __name__ == "__main__":
     main()

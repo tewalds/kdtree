@@ -1,89 +1,2014 @@
-{
-  "cpp": {
-    "results": [
-      {
-        "n": 1000,
-        "build_ms": 0.151294,
-        "query_us": 1.78033
-      },
-      {
-        "n": 10000,
-        "build_ms": 1.17827,
-        "query_us": 1.0791
-      },
-      {
-        "n": 100000,
-        "build_ms": 14.4574,
-        "query_us": 0.58979
-      },
-      {
-        "n": 1000000,
-        "build_ms": 194.405,
-        "query_us": 1.61614
-      },
-      {
-        "n": 10000000,
-        "build_ms": 2779.53,
-        "query_us": 2.1787
-      }
-    ]
+[
+  {
+    "test": "Blue Noise Search",
+    "implementation": "C++",
+    "n": 500,
+    "time_ms": 37.4531,
+    "iters": 125249
   },
-  "py": {
-    "results": [
-      {
-        "n": 1000,
-        "build_ms": 0.128601910546422,
-        "query_us": 3.0149349477142096
-      },
-      {
-        "n": 10000,
-        "build_ms": 1.4759779442101717,
-        "query_us": 2.03882809728384
-      },
-      {
-        "n": 100000,
-        "build_ms": 16.707768896594644,
-        "query_us": 1.1812630109488964
-      },
-      {
-        "n": 1000000,
-        "build_ms": 206.18339790962636,
-        "query_us": 2.2606949787586927
-      },
-      {
-        "n": 10000000,
-        "build_ms": 2863.7012580875307,
-        "query_us": 3.612549975514412
-      }
-    ]
+  {
+    "test": "Blue Noise Search",
+    "implementation": "C++",
+    "n": 1000,
+    "time_ms": 137.291,
+    "iters": 500499
   },
-  "scipy": {
-    "results": [
-      {
-        "n": 1000,
-        "build_ms": 0.24506100453436375,
-        "query_us": 8.363441796973348
-      },
-      {
-        "n": 10000,
-        "build_ms": 1.517656957730651,
-        "query_us": 6.468686042353511
-      },
-      {
-        "n": 100000,
-        "build_ms": 19.131361041218042,
-        "query_us": 6.628156173974276
-      },
-      {
-        "n": 1000000,
-        "build_ms": 228.84063608944416,
-        "query_us": 7.167761912569404
-      },
-      {
-        "n": 10000000,
-        "build_ms": 3391.5989801753312,
-        "query_us": 8.10310197994113
-      }
-    ]
+  {
+    "test": "Blue Noise Search",
+    "implementation": "C++",
+    "n": 2000,
+    "time_ms": 613.904,
+    "iters": 2000999
+  },
+  {
+    "test": "Blue Noise Search",
+    "implementation": "Python",
+    "n": 500,
+    "time_ms": 131.08224654570222,
+    "iters": 125249
+  },
+  {
+    "test": "Blue Noise Search",
+    "implementation": "Python",
+    "n": 1000,
+    "time_ms": 527.3923589847982,
+    "iters": 500499
+  },
+  {
+    "test": "Blue Noise Search",
+    "implementation": "Python",
+    "n": 2000,
+    "time_ms": 2153.2338655088097,
+    "iters": 2000999
+  },
+  {
+    "test": "Blue Noise Total",
+    "implementation": "C++",
+    "n": 500,
+    "time_ms": 54.2781,
+    "iters": 1
+  },
+  {
+    "test": "Blue Noise Total",
+    "implementation": "C++",
+    "n": 1000,
+    "time_ms": 202.931,
+    "iters": 1
+  },
+  {
+    "test": "Blue Noise Total",
+    "implementation": "C++",
+    "n": 2000,
+    "time_ms": 880.202,
+    "iters": 1
+  },
+  {
+    "test": "Blue Noise Total",
+    "implementation": "Python",
+    "n": 500,
+    "time_ms": 285.72183614596725,
+    "iters": 1
+  },
+  {
+    "test": "Blue Noise Total",
+    "implementation": "Python",
+    "n": 1000,
+    "time_ms": 1150.03030304797,
+    "iters": 1
+  },
+  {
+    "test": "Blue Noise Total",
+    "implementation": "Python",
+    "n": 2000,
+    "time_ms": 4618.479887954891,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (double)",
+    "n": 1000,
+    "time_ms": 0.131498,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (double)",
+    "n": 10000,
+    "time_ms": 1.2098,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (double)",
+    "n": 100000,
+    "time_ms": 14.4501,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (double)",
+    "n": 1000000,
+    "time_ms": 201.847,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (double)",
+    "n": 10000000,
+    "time_ms": 2943.87,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (int)",
+    "n": 1000,
+    "time_ms": 0.083077,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (int)",
+    "n": 10000,
+    "time_ms": 0.989003,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (int)",
+    "n": 100000,
+    "time_ms": 11.7401,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (int)",
+    "n": 1000000,
+    "time_ms": 164.013,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "C++ (int)",
+    "n": 10000000,
+    "time_ms": 2516.25,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/int64)",
+    "n": 1000,
+    "time_ms": 0.12805103324353695,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/int64)",
+    "n": 10000,
+    "time_ms": 1.477822894230485,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/int64)",
+    "n": 100000,
+    "time_ms": 16.83620410040021,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/int64)",
+    "n": 1000000,
+    "time_ms": 219.93698994629085,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/int64)",
+    "n": 10000000,
+    "time_ms": 3014.424300985411,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/object)",
+    "n": 1000,
+    "time_ms": 0.14708703383803368,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/object)",
+    "n": 10000,
+    "time_ms": 1.5075390692800283,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/object)",
+    "n": 100000,
+    "time_ms": 16.928579192608595,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/object)",
+    "n": 1000000,
+    "time_ms": 221.42560314387083,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "Python (float/object)",
+    "n": 10000000,
+    "time_ms": 3017.9975910577923,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "SciPy",
+    "n": 1000,
+    "time_ms": 0.24221697822213173,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "SciPy",
+    "n": 10000,
+    "time_ms": 1.5465121250599623,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "SciPy",
+    "n": 100000,
+    "time_ms": 19.549012184143066,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "SciPy",
+    "n": 1000000,
+    "time_ms": 230.8104659896344,
+    "iters": 1
+  },
+  {
+    "test": "Core Build",
+    "implementation": "SciPy",
+    "n": 10000000,
+    "time_ms": 3417.950740084052,
+    "iters": 1
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (double)",
+    "n": 1000,
+    "time_ms": 0.183735,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (double)",
+    "n": 10000,
+    "time_ms": 0.268095,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (double)",
+    "n": 100000,
+    "time_ms": 0.406826,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (double)",
+    "n": 1000000,
+    "time_ms": 1.84274,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (double)",
+    "n": 10000000,
+    "time_ms": 3.00751,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (int)",
+    "n": 1000,
+    "time_ms": 0.102703,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (int)",
+    "n": 10000,
+    "time_ms": 0.163538,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (int)",
+    "n": 100000,
+    "time_ms": 0.313771,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (int)",
+    "n": 1000000,
+    "time_ms": 1.60277,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "C++ (int)",
+    "n": 10000000,
+    "time_ms": 3.16267,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/int64)",
+    "n": 1000,
+    "time_ms": 1.0055538732558489,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/int64)",
+    "n": 10000,
+    "time_ms": 1.0727199260145426,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/int64)",
+    "n": 100000,
+    "time_ms": 0.9255129843950272,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/int64)",
+    "n": 1000000,
+    "time_ms": 2.35511502251029,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/int64)",
+    "n": 10000000,
+    "time_ms": 4.202683921903372,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/object)",
+    "n": 1000,
+    "time_ms": 0.9251420851796865,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/object)",
+    "n": 10000,
+    "time_ms": 1.023588003590703,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/object)",
+    "n": 100000,
+    "time_ms": 0.9974180720746517,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/object)",
+    "n": 1000000,
+    "time_ms": 2.4271709844470024,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "Python (float/object)",
+    "n": 10000000,
+    "time_ms": 3.683896968141198,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "SciPy",
+    "n": 1000,
+    "time_ms": 8.342048851773143,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "SciPy",
+    "n": 10000,
+    "time_ms": 6.621659034863114,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "SciPy",
+    "n": 100000,
+    "time_ms": 6.730905035510659,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "SciPy",
+    "n": 1000000,
+    "time_ms": 7.20735196955502,
+    "iters": 1000
+  },
+  {
+    "test": "Core Query (1k)",
+    "implementation": "SciPy",
+    "n": 10000000,
+    "time_ms": 8.150627836585045,
+    "iters": 1000
+  },
+  {
+    "test": "GPX Bulk Build",
+    "implementation": "C++",
+    "n": 145039,
+    "time_ms": 11.8439
+  },
+  {
+    "test": "GPX Bulk Build",
+    "implementation": "Python",
+    "n": 145039,
+    "time_ms": 14.425344066694379
+  },
+  {
+    "test": "GPX Bulk Build",
+    "implementation": "SciPy",
+    "n": 145039,
+    "time_ms": 15.222074929624796
+  },
+  {
+    "test": "GPX Dedupe (100m)",
+    "implementation": "C++",
+    "n": 145039,
+    "time_ms": 122.402
+  },
+  {
+    "test": "GPX Dedupe (100m)",
+    "implementation": "Python",
+    "n": 145039,
+    "time_ms": 245.94334699213505
+  },
+  {
+    "test": "GPX Dedupe (10m)",
+    "implementation": "C++",
+    "n": 145039,
+    "time_ms": 484.568
+  },
+  {
+    "test": "GPX Dedupe (10m)",
+    "implementation": "Python",
+    "n": 145039,
+    "time_ms": 641.6063269134611
+  },
+  {
+    "test": "GPX Dedupe (1m)",
+    "implementation": "C++",
+    "n": 145039,
+    "time_ms": 566.87
+  },
+  {
+    "test": "GPX Dedupe (1m)",
+    "implementation": "Python",
+    "n": 145039,
+    "time_ms": 768.7161948997527
+  },
+  {
+    "test": "GPX Inc Load",
+    "implementation": "C++",
+    "n": 145039,
+    "time_ms": 459.682
+  },
+  {
+    "test": "GPX Inc Load",
+    "implementation": "Python",
+    "n": 145039,
+    "time_ms": 557.6014029793441
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (GreatCircle)",
+    "n": 1000,
+    "time_ms": 3.82273,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (GreatCircle)",
+    "n": 10000,
+    "time_ms": 11.549,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (GreatCircle)",
+    "n": 100000,
+    "time_ms": 37.1151,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (GreatCircle)",
+    "n": 1000000,
+    "time_ms": 412.373,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L1)",
+    "n": 1000,
+    "time_ms": 0.101741,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L1)",
+    "n": 10000,
+    "time_ms": 0.344168,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L1)",
+    "n": 100000,
+    "time_ms": 1.41615,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L1)",
+    "n": 1000000,
+    "time_ms": 25.185,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2)",
+    "n": 1000,
+    "time_ms": 0.26516,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2)",
+    "n": 10000,
+    "time_ms": 0.642309,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2)",
+    "n": 100000,
+    "time_ms": 2.33207,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2)",
+    "n": 1000000,
+    "time_ms": 35.3877,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2sq)",
+    "n": 1000,
+    "time_ms": 0.102854,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2sq)",
+    "n": 10000,
+    "time_ms": 0.378242,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2sq)",
+    "n": 100000,
+    "time_ms": 1.42232,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (L2sq)",
+    "n": 1000000,
+    "time_ms": 24.5785,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (Linf)",
+    "n": 1000,
+    "time_ms": 0.11125,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (Linf)",
+    "n": 10000,
+    "time_ms": 0.338467,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (Linf)",
+    "n": 100000,
+    "time_ms": 1.44336,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (Linf)",
+    "n": 1000000,
+    "time_ms": 22.118,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 1000,
+    "time_ms": 0.184237,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 10000,
+    "time_ms": 0.588418,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 100000,
+    "time_ms": 1.82776,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 1000000,
+    "time_ms": 28.9376,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 1000,
+    "time_ms": 0.312989,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 10000,
+    "time_ms": 0.7968,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 100000,
+    "time_ms": 2.7495,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 1000000,
+    "time_ms": 41.0511,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 1000,
+    "time_ms": 0.190128,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 10000,
+    "time_ms": 0.53651,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 100000,
+    "time_ms": 1.8569,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 1000000,
+    "time_ms": 30.8753,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 1000,
+    "time_ms": 0.182023,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 10000,
+    "time_ms": 0.501073,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 100000,
+    "time_ms": 1.81079,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 1000000,
+    "time_ms": 28.3206,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (GreatCircle)",
+    "n": 1000,
+    "time_ms": 4.635498858988285,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (GreatCircle)",
+    "n": 10000,
+    "time_ms": 12.402354972437024,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (GreatCircle)",
+    "n": 100000,
+    "time_ms": 37.75844210758805,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (GreatCircle)",
+    "n": 1000000,
+    "time_ms": 442.4374320078641,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L1)",
+    "n": 1000,
+    "time_ms": 0.7205759175121784,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L1)",
+    "n": 10000,
+    "time_ms": 0.9876401163637638,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L1)",
+    "n": 100000,
+    "time_ms": 4.268007120117545,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L1)",
+    "n": 1000000,
+    "time_ms": 56.23499397188425,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2)",
+    "n": 1000,
+    "time_ms": 0.9699359070509672,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2)",
+    "n": 10000,
+    "time_ms": 1.4978500548750162,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2)",
+    "n": 100000,
+    "time_ms": 7.14680808596313,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2)",
+    "n": 1000000,
+    "time_ms": 82.07876910455525,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2sq)",
+    "n": 1000,
+    "time_ms": 0.903422012925148,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2sq)",
+    "n": 10000,
+    "time_ms": 1.2663451489061117,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2sq)",
+    "n": 100000,
+    "time_ms": 6.207659840583801,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (L2sq)",
+    "n": 1000000,
+    "time_ms": 74.30414902046323,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (Linf)",
+    "n": 1000,
+    "time_ms": 1.1086780577898026,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (Linf)",
+    "n": 10000,
+    "time_ms": 1.4303931966423988,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (Linf)",
+    "n": 100000,
+    "time_ms": 7.6470100320875645,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (Linf)",
+    "n": 1000000,
+    "time_ms": 84.36758699826896,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL1)",
+    "n": 1000,
+    "time_ms": 1.0677699465304613,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL1)",
+    "n": 10000,
+    "time_ms": 1.2639400083571672,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL1)",
+    "n": 100000,
+    "time_ms": 4.521814873442054,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL1)",
+    "n": 1000000,
+    "time_ms": 59.04898187145591,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2)",
+    "n": 1000,
+    "time_ms": 0.9397091343998909,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2)",
+    "n": 10000,
+    "time_ms": 1.7505970317870378,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2)",
+    "n": 100000,
+    "time_ms": 7.3286311235278845,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2)",
+    "n": 1000000,
+    "time_ms": 87.29860791936517,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 1000,
+    "time_ms": 0.8197729475796223,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 10000,
+    "time_ms": 1.460258848965168,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 100000,
+    "time_ms": 6.6873428877443075,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 1000000,
+    "time_ms": 78.87707999907434,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 1000,
+    "time_ms": 0.9076891001313925,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 10000,
+    "time_ms": 1.6825490165501833,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 100000,
+    "time_ms": 8.04472784511745,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_all_within",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 1000000,
+    "time_ms": 91.05166513472795,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (GreatCircle)",
+    "n": 1000,
+    "time_ms": 4.84053,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (GreatCircle)",
+    "n": 10000,
+    "time_ms": 15.0698,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (GreatCircle)",
+    "n": 100000,
+    "time_ms": 38.3799,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (GreatCircle)",
+    "n": 1000000,
+    "time_ms": 298.475,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L1)",
+    "n": 1000,
+    "time_ms": 0.208202,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L1)",
+    "n": 10000,
+    "time_ms": 0.301418,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L1)",
+    "n": 100000,
+    "time_ms": 0.453074,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L1)",
+    "n": 1000000,
+    "time_ms": 1.67758,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2)",
+    "n": 1000,
+    "time_ms": 0.37144,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2)",
+    "n": 10000,
+    "time_ms": 0.490454,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2)",
+    "n": 100000,
+    "time_ms": 0.623514,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2)",
+    "n": 1000000,
+    "time_ms": 1.0747,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2sq)",
+    "n": 1000,
+    "time_ms": 0.185589,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2sq)",
+    "n": 10000,
+    "time_ms": 0.261633,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2sq)",
+    "n": 100000,
+    "time_ms": 0.380716,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (L2sq)",
+    "n": 1000000,
+    "time_ms": 1.20169,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (Linf)",
+    "n": 1000,
+    "time_ms": 0.173005,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (Linf)",
+    "n": 10000,
+    "time_ms": 0.259168,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (Linf)",
+    "n": 100000,
+    "time_ms": 0.360289,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (Linf)",
+    "n": 1000000,
+    "time_ms": 0.585031,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 1000,
+    "time_ms": 0.29706,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 10000,
+    "time_ms": 0.406766,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 100000,
+    "time_ms": 0.554073,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 1000000,
+    "time_ms": 0.792622,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 1000,
+    "time_ms": 0.456149,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 10000,
+    "time_ms": 0.643292,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 100000,
+    "time_ms": 0.758979,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 1000000,
+    "time_ms": 1.84483,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 1000,
+    "time_ms": 0.259649,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 10000,
+    "time_ms": 0.376259,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 100000,
+    "time_ms": 0.503618,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 1000000,
+    "time_ms": 1.18437,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 1000,
+    "time_ms": 0.233449,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 10000,
+    "time_ms": 0.330622,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 100000,
+    "time_ms": 0.468993,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 1000000,
+    "time_ms": 1.08286,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (GreatCircle)",
+    "n": 1000,
+    "time_ms": 5.912513937801123,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (GreatCircle)",
+    "n": 10000,
+    "time_ms": 14.901611022651196,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (GreatCircle)",
+    "n": 100000,
+    "time_ms": 38.49430684931576,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (GreatCircle)",
+    "n": 1000000,
+    "time_ms": 325.00698510557413,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L1)",
+    "n": 1000,
+    "time_ms": 1.063372939825058,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L1)",
+    "n": 10000,
+    "time_ms": 0.8672629483044147,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L1)",
+    "n": 100000,
+    "time_ms": 0.964044826105237,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L1)",
+    "n": 1000000,
+    "time_ms": 2.5823130272328854,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2)",
+    "n": 1000,
+    "time_ms": 1.2474381364881992,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2)",
+    "n": 10000,
+    "time_ms": 1.0687829926609993,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2)",
+    "n": 100000,
+    "time_ms": 1.1955809313803911,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2)",
+    "n": 1000000,
+    "time_ms": 1.9562840461730957,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2sq)",
+    "n": 1000,
+    "time_ms": 0.9428660850971937,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2sq)",
+    "n": 10000,
+    "time_ms": 0.7587890140712261,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2sq)",
+    "n": 100000,
+    "time_ms": 0.8658398874104023,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (L2sq)",
+    "n": 1000000,
+    "time_ms": 2.104111947119236,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (Linf)",
+    "n": 1000,
+    "time_ms": 1.1966829188168049,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (Linf)",
+    "n": 10000,
+    "time_ms": 0.8947448804974556,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (Linf)",
+    "n": 100000,
+    "time_ms": 0.9974581189453602,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (Linf)",
+    "n": 1000000,
+    "time_ms": 2.053657080978155,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL1)",
+    "n": 1000,
+    "time_ms": 1.489443937316537,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL1)",
+    "n": 10000,
+    "time_ms": 1.0338069405406713,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL1)",
+    "n": 100000,
+    "time_ms": 1.1720568872988224,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL1)",
+    "n": 1000000,
+    "time_ms": 2.3386140819638968,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2)",
+    "n": 1000,
+    "time_ms": 1.5580439940094948,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2)",
+    "n": 10000,
+    "time_ms": 1.260895049199462,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2)",
+    "n": 100000,
+    "time_ms": 1.3815611600875854,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2)",
+    "n": 1000000,
+    "time_ms": 2.473107073456049,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 1000,
+    "time_ms": 0.9906659834086895,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 10000,
+    "time_ms": 1.0750240180641413,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 100000,
+    "time_ms": 1.2107300572097301,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 1000000,
+    "time_ms": 2.5850781239569187,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 1000,
+    "time_ms": 1.0532939340919256,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 10000,
+    "time_ms": 1.1338950134813786,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 100000,
+    "time_ms": 1.2538209557533264,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 1000000,
+    "time_ms": 2.5023119524121284,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (GreatCircle)",
+    "n": 1000,
+    "time_ms": 7.00127,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (GreatCircle)",
+    "n": 10000,
+    "time_ms": 20.6669,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (GreatCircle)",
+    "n": 100000,
+    "time_ms": 51.3706,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (GreatCircle)",
+    "n": 1000000,
+    "time_ms": 401.813,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L1)",
+    "n": 1000,
+    "time_ms": 0.625258,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L1)",
+    "n": 10000,
+    "time_ms": 0.805637,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L1)",
+    "n": 100000,
+    "time_ms": 0.909052,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L1)",
+    "n": 1000000,
+    "time_ms": 1.92169,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2)",
+    "n": 1000,
+    "time_ms": 0.863295,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2)",
+    "n": 10000,
+    "time_ms": 1.07549,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2)",
+    "n": 100000,
+    "time_ms": 1.28908,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2)",
+    "n": 1000000,
+    "time_ms": 1.95567,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2sq)",
+    "n": 1000,
+    "time_ms": 0.497267,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2sq)",
+    "n": 10000,
+    "time_ms": 0.650034,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2sq)",
+    "n": 100000,
+    "time_ms": 0.801679,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (L2sq)",
+    "n": 1000000,
+    "time_ms": 1.48611,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (Linf)",
+    "n": 1000,
+    "time_ms": 0.48881,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (Linf)",
+    "n": 10000,
+    "time_ms": 0.596954,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (Linf)",
+    "n": 100000,
+    "time_ms": 0.742147,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (Linf)",
+    "n": 1000000,
+    "time_ms": 1.11298,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 1000,
+    "time_ms": 0.756013,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 10000,
+    "time_ms": 1.03423,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 100000,
+    "time_ms": 1.18684,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL1)",
+    "n": 1000000,
+    "time_ms": 1.67157,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 1000,
+    "time_ms": 1.01778,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 10000,
+    "time_ms": 1.48003,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 100000,
+    "time_ms": 1.50187,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2)",
+    "n": 1000000,
+    "time_ms": 2.57319,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 1000,
+    "time_ms": 0.67456,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 10000,
+    "time_ms": 0.926976,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 100000,
+    "time_ms": 1.06241,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalL2sq)",
+    "n": 1000000,
+    "time_ms": 1.83789,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 1000,
+    "time_ms": 0.606652,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 10000,
+    "time_ms": 0.781131,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 100000,
+    "time_ms": 0.952193,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "C++ (ToroidalLinf)",
+    "n": 1000000,
+    "time_ms": 1.56981,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (GreatCircle)",
+    "n": 1000,
+    "time_ms": 9.390041930601,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (GreatCircle)",
+    "n": 10000,
+    "time_ms": 22.579658078029752,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (GreatCircle)",
+    "n": 100000,
+    "time_ms": 54.48973714374006,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (GreatCircle)",
+    "n": 1000000,
+    "time_ms": 464.9035178590566,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L1)",
+    "n": 1000,
+    "time_ms": 2.316442085430026,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L1)",
+    "n": 10000,
+    "time_ms": 1.8106899224221706,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L1)",
+    "n": 100000,
+    "time_ms": 2.0022308453917503,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L1)",
+    "n": 1000000,
+    "time_ms": 3.8345109205693007,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2)",
+    "n": 1000,
+    "time_ms": 2.691828878596425,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2)",
+    "n": 10000,
+    "time_ms": 2.2606870625168085,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2)",
+    "n": 100000,
+    "time_ms": 2.502522896975279,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2)",
+    "n": 1000000,
+    "time_ms": 3.3319140784442425,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2sq)",
+    "n": 1000,
+    "time_ms": 2.170346910133958,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2sq)",
+    "n": 10000,
+    "time_ms": 1.7310099210590124,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2sq)",
+    "n": 100000,
+    "time_ms": 1.8727059941738844,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (L2sq)",
+    "n": 1000000,
+    "time_ms": 3.2468338031321764,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (Linf)",
+    "n": 1000,
+    "time_ms": 2.4387119337916374,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (Linf)",
+    "n": 10000,
+    "time_ms": 1.8024940509349108,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (Linf)",
+    "n": 100000,
+    "time_ms": 1.9464348442852497,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (Linf)",
+    "n": 1000000,
+    "time_ms": 2.802556846290827,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL1)",
+    "n": 1000,
+    "time_ms": 2.7022778522223234,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL1)",
+    "n": 10000,
+    "time_ms": 2.0411040168255568,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL1)",
+    "n": 100000,
+    "time_ms": 2.2264427971094847,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL1)",
+    "n": 1000000,
+    "time_ms": 3.6284730304032564,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2)",
+    "n": 1000,
+    "time_ms": 2.3136171512305737,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2)",
+    "n": 10000,
+    "time_ms": 2.482243813574314,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2)",
+    "n": 100000,
+    "time_ms": 2.6327180676162243,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2)",
+    "n": 1000000,
+    "time_ms": 4.011565120890737,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 1000,
+    "time_ms": 1.888145925477147,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 10000,
+    "time_ms": 2.0351619459688663,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 100000,
+    "time_ms": 2.2817160934209824,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalL2sq)",
+    "n": 1000000,
+    "time_ms": 3.8377370219677687,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 1000,
+    "time_ms": 1.9348240457475185,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 10000,
+    "time_ms": 2.0887230057269335,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 100000,
+    "time_ms": 2.2199901286512613,
+    "iters": 1000
+  },
+  {
+    "test": "Query: find_closest_k=5",
+    "implementation": "Python (ToroidalLinf)",
+    "n": 1000000,
+    "time_ms": 3.3950130455195904,
+    "iters": 1000
   }
-}
+]
